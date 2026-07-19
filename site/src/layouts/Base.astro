@@ -125,6 +125,32 @@ const ogImageUrl = new URL(ogImage, Astro.site);
           { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
         );
         for (const el of [...targets, ...signatures]) io.observe(el);
+
+        // If the observer misses anything (stalled IO in rare environments),
+        // a debounced sweep reveals whatever is in the viewport but still
+        // hidden. Healthy browsers never hit this: IO marks elements visible
+        // within a frame, long before the 300ms debounce fires.
+        const sweep = () => {
+          for (const el of [...targets, ...signatures]) {
+            if (el.classList.contains('is-visible')) continue;
+            const r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) {
+              el.classList.add('is-visible');
+              const s = (el as HTMLElement).style;
+              s.transition = 'none';
+              s.opacity = '1';
+              s.translate = 'none';
+              s.clipPath = 'none';
+            }
+          }
+        };
+        let sweepTimer = 0;
+        const queueSweep = () => {
+          window.clearTimeout(sweepTimer);
+          sweepTimer = window.setTimeout(sweep, 300);
+        };
+        window.addEventListener('scroll', queueSweep, { passive: true });
+        window.setTimeout(sweep, 2500);
       } else {
         for (const el of [...targets, ...signatures]) el.classList.add('is-visible');
       }

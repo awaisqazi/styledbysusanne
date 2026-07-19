@@ -20,6 +20,18 @@ One-time asset scripts (already run; re-run only if inputs change):
 - `node scripts/prep-photos.mjs` — crops research screenshots into `src/assets/photos/`
 - `node scripts/make-og-image.mjs` — regenerates `public/og-default.jpg`
 
+## Refreshing the Instagram lookbook
+
+`npm run import:instagram <browser-catalog.json>` imports a captured post
+catalog: images land in `src/assets/instagram/` (Astro optimizes them at
+build) and post data in `src/data/instagram-posts.json`. After each import,
+hand-review the JSON: the importer flattens em-dashes crudely (site rule:
+none anywhere), and every `media[].alt` should be rewritten to describe
+what's actually visible (garments, colors, setting; 60–160 chars). Posts
+gain a "Shop this look piece by piece" link by setting `shopHref` to a
+`/looks/<slug>` page. The newest post with a `shopHref` automatically leads
+the /looks page as the featured edit.
+
 ## Where things live
 
 - **Contact info, booking-form URL, nav, announcement bar** → `src/lib/site.ts`.

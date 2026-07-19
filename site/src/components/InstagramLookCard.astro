@@ -1,0 +1,527 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { LOOK_CATEGORIES, type LookCategory } from '../lib/looks';
+
+interface InstagramMedia {
+  src: string;
+  alt: string;
+}
+
+interface InstagramPost {
+  id: string;
+  title: string;
+  date: string;
+  category: LookCategory;
+  kind: 'post' | 'reel';
+  location: string | null;
+  caption: string;
+  snippet: string;
+  instagramUrl: string;
+  shopHref: string | null;
+  likes: number;
+  comments: number;
+  media: InstagramMedia[];
+}
+
+interface Props {
+  post: InstagramPost;
+  eager?: boolean;
+  /** 'featured' renders the wide editorial split layout with an h2. */
+  variant?: 'grid' | 'featured';
+}
+
+const { post, eager = false, variant = 'grid' } = Astro.props;
+const featured = variant === 'featured';
+
+/**
+ * Catalog images live in src/assets/instagram so they flow through Astro's
+ * image pipeline (responsive srcset + modern formats). JSON `src` values are
+ * matched by filename, so the stored path prefix doesn't matter.
+ */
+const catalogImages = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/instagram/*.{jpg,jpeg,png,webp}',
+  { eager: true },
+);
+const imagesByName = new Map(
+  Object.entries(catalogImages).map(([path, module]) => [path.split('/').pop()!, module.default]),
+);
+
+const resolveImage = (src: string): ImageMetadata => {
+  const name = src.split('/').pop()!;
+  const image = imagesByName.get(name);
+  if (!image) throw new Error(`Instagram catalog image not found in src/assets/instagram: ${name}`);
+  return image;
+};
+
+const dateLabel = new Date(`${post.date}T12:00:00Z`).toLocaleDateString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const hasMultiple = post.media.length > 1;
+const categoryLabel = LOOK_CATEGORIES[post.category];
+const Heading = featured ? 'h2' : 'h3';
+
+const gridSizes = '(max-width: 640px) 92vw, (max-width: 980px) 46vw, 30vw';
+const featuredSizes = '(max-width: 900px) 92vw, 46vw';
+---
+
+<article
+  class:list={['instagram-look', 'card', { 'instagram-look--featured': featured }]}
+  data-instagram-gallery
+>
+  <div class="instagram-look-media">
+    <div
+      class="instagram-look-track"
+      data-gallery-track
+      tabindex={hasMultiple ? 0 : undefined}
+      role={hasMultiple ? 'group' : undefined}
+      aria-label={hasMultiple ? `${post.media.length} photos: ${post.title}` : undefined}
+    >
+      {
+        post.media.map((media, index) => (
+          <figure class="instagram-look-slide">
+            <Image
+              src={resolveImage(media.src)}
+              alt={media.alt}
+              widths={featured ? [420, 640, 920] : [320, 480, 720]}
+              sizes={featured ? featuredSizes : gridSizes}
+              loading={eager && index === 0 ? 'eager' : 'lazy'}
+              fetchpriority={eager && index === 0 ? 'high' : 'auto'}
+            />
+          </figure>
+        ))
+      }
+    </div>
+
+    <div class="instagram-look-badges">
+      {post.kind === 'reel' && <span class="instagram-look-badge">Reel</span>}
+    </div>
+
+    {
+      hasMultiple && (
+        <>
+          <button
+            class="instagram-look-nav instagram-look-nav--previous"
+            type="button"
+            data-gallery-previous
+            aria-label="Previous photo"
+            disabled
+          >
+            ←
+          </button>
+          <button
+            class="instagram-look-nav instagram-look-nav--next"
+            type="button"
+            data-gallery-next
+            aria-label="Next photo"
+          >
+            →
+          </button>
+          <div class="instagram-look-dots" data-gallery-dots aria-hidden="true">
+            {post.media.map((_, index) => (
+              <span class:list={['instagram-look-dot', { 'is-active': index === 0 }]} />
+            ))}
+          </div>
+          <span class="instagram-look-count" data-gallery-count>
+            1 / {post.media.length}
+          </span>
+        </>
+      )
+    }
+  </div>
+
+  <div class="instagram-look-body">
+    <p class="instagram-look-category">
+      {categoryLabel}
+      {featured && <span class="instagram-look-flag">The latest edit</span>}
+    </p>
+    <Heading class="instagram-look-title">{post.title}</Heading>
+    <p class="instagram-look-meta">
+      <time datetime={post.date}>{dateLabel}</time>
+      {post.location && <span> · {post.location}</span>}
+    </p>
+    <p class="instagram-look-snippet">{post.snippet}</p>
+
+    <details class="instagram-look-caption">
+      <summary>Read the full caption</summary>
+      <p>{post.caption}</p>
+    </details>
+
+    <div class="instagram-look-links">
+      {
+        post.shopHref && (
+          <a class:list={['instagram-look-shop', { btn: featured, 'btn--rose': featured }]} href={post.shopHref}>
+            Shop this look piece by piece <span aria-hidden="true">→</span>
+          </a>
+        )
+      }
+      <a
+        class="instagram-look-source"
+        href={post.instagramUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View on Instagram <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .instagram-look {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+
+  .instagram-look:hover {
+    box-shadow: var(--shadow-lift), 0 0 0 1px var(--blush);
+    transform: translateY(-3px);
+  }
+
+  /* ------------------------------------------------ swipeable gallery */
+  .instagram-look-media {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--ivory);
+  }
+
+  .instagram-look-track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .instagram-look-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .instagram-look-track:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: -2px;
+  }
+
+  .instagram-look-slide {
+    flex: 0 0 100%;
+    height: 100%;
+    margin: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .instagram-look-slide :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .instagram-look-badges {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.8rem;
+    display: flex;
+    gap: 0.4rem;
+    pointer-events: none;
+  }
+
+  .instagram-look-badge {
+    color: var(--paper);
+    background: rgba(54, 44, 36, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+  }
+
+  .instagram-look-nav {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    width: 2.55rem;
+    height: 2.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.92);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(54, 44, 36, 0.18);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity var(--transition), background-color var(--transition);
+  }
+
+  .instagram-look-nav--previous {
+    left: 0.7rem;
+  }
+
+  .instagram-look-nav--next {
+    right: 0.7rem;
+  }
+
+  .instagram-look:hover .instagram-look-nav,
+  .instagram-look:focus-within .instagram-look-nav {
+    opacity: 1;
+  }
+
+  /* Touch devices have no hover; keep arrows visible as a swipe affordance. */
+  @media (hover: none) {
+    .instagram-look-nav {
+      opacity: 1;
+    }
+  }
+
+  .instagram-look-nav:hover {
+    background: var(--card);
+  }
+
+  .instagram-look-nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Buttons and dot state need JS; swiping works without it. */
+  :global(html:not(.js)) .instagram-look-nav,
+  :global(html:not(.js)) .instagram-look-count {
+    display: none;
+  }
+
+  .instagram-look-dots {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.7rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    pointer-events: none;
+  }
+
+  .instagram-look-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: rgba(250, 246, 239, 0.65);
+    box-shadow: 0 1px 4px rgba(54, 44, 36, 0.35);
+    transition: background-color var(--transition), scale var(--transition);
+  }
+
+  .instagram-look-dot.is-active {
+    background: var(--card);
+    scale: 1.25;
+  }
+
+  .instagram-look-count {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    color: var(--paper);
+    background: rgba(54, 44, 36, 0.82);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    backdrop-filter: blur(6px);
+  }
+
+  /* --------------------------------------------------------- content */
+  .instagram-look-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.35rem 1.45rem 1.5rem;
+  }
+
+  .instagram-look-category {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--rose);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+
+  .instagram-look-flag {
+    color: var(--rose-deep);
+    background: var(--rose-soft);
+    border-radius: 999px;
+    padding: 0.22rem 0.7rem;
+    letter-spacing: 0.14em;
+  }
+
+  .instagram-look-title {
+    font-size: 1.35rem;
+    line-height: 1.22;
+    margin-bottom: 0.35rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .instagram-look-meta {
+    color: var(--umber);
+    font-size: 0.78rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .instagram-look-snippet {
+    color: var(--umber);
+    font-size: 0.92rem;
+    line-height: 1.62;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .instagram-look-caption {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 0.8rem;
+    margin-top: auto;
+  }
+
+  .instagram-look-caption summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--rose);
+    font-size: 0.78rem;
+    font-weight: 580;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .instagram-look-caption summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .instagram-look-caption summary::after {
+    content: '+';
+    font-size: 0.95rem;
+    color: var(--gold-deep);
+    transition: rotate var(--transition);
+  }
+
+  .instagram-look-caption[open] summary::after {
+    rotate: 45deg;
+  }
+
+  .instagram-look-caption summary:hover {
+    color: var(--rose-deep);
+  }
+
+  .instagram-look-caption p {
+    white-space: pre-line;
+    color: var(--umber);
+    font-size: 0.84rem;
+    line-height: 1.58;
+    margin: 0.9rem 0 0;
+  }
+
+  .instagram-look-links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1.15rem;
+  }
+
+  .instagram-look-shop {
+    color: var(--rose);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--blush);
+    padding-bottom: 0.15rem;
+  }
+
+  .instagram-look-shop:hover {
+    color: var(--rose-deep);
+    border-color: var(--rose);
+  }
+
+  .instagram-look-source {
+    color: var(--umber);
+    font-size: 0.76rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.15rem;
+  }
+
+  .instagram-look-source:hover {
+    color: var(--espresso);
+    border-color: var(--gold);
+  }
+
+  /* -------------------------------------------------------- featured */
+  .instagram-look--featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  }
+
+  .instagram-look--featured .instagram-look-media {
+    aspect-ratio: auto;
+    min-height: 100%;
+  }
+
+  .instagram-look--featured .instagram-look-body {
+    padding: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem);
+  }
+
+  .instagram-look--featured .instagram-look-title {
+    font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+    -webkit-line-clamp: 4;
+  }
+
+  .instagram-look--featured .instagram-look-snippet {
+    font-size: 1rem;
+    -webkit-line-clamp: 6;
+  }
+
+  .instagram-look--featured .instagram-look-shop {
+    color: #fffdf9;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .instagram-look--featured .instagram-look-shop:hover {
+    color: #fffdf9;
+  }
+
+  @media (max-width: 900px) {
+    .instagram-look--featured {
+      grid-template-columns: 1fr;
+    }
+
+    .instagram-look--featured .instagram-look-media {
+      aspect-ratio: 4 / 5;
+      min-height: 0;
+    }
+  }
+</style>
