@@ -1,0 +1,141 @@
+---
+import { EMAIL_SIGNUP_ACTION, SITE } from '../lib/site';
+
+/**
+ * Email list signup panel. While no email provider is connected
+ * (EMAIL_SIGNUP_ACTION is empty), it renders an honest "list opening soon"
+ * state with Instagram/email CTAs instead of a dead form.
+ *
+ * To go live: set EMAIL_SIGNUP_ACTION in src/lib/site.ts to your provider's
+ * form action URL (Shopify Email, Buttondown, Mailchimp embedded form, …)
+ * and confirm the input name below matches what the provider expects.
+ */
+interface Props {
+  title?: string;
+  lede?: string;
+  /** Anchor id so other pages can deep-link to the signup. */
+  id?: string;
+}
+
+const {
+  title = 'The 15-Minute Closet Reset',
+  lede = 'A free, genuinely useful guide to clearing the noise from your closet in one focused session, plus monthly outfit formulas and first access to new services.',
+  id = 'closet-reset',
+} = Astro.props;
+---
+
+<section class="section email-capture" id={id}>
+  <div class="container">
+    <div class="email-capture-panel card">
+      <div class="email-capture-copy">
+        <p class="eyebrow">Free style resource</p>
+        <h2>{title}</h2>
+        <p class="lede">{lede}</p>
+      </div>
+      <div class="email-capture-action">
+        {
+          EMAIL_SIGNUP_ACTION ? (
+            <form action={EMAIL_SIGNUP_ACTION} method="post" class="email-form">
+              <label class="visually-hidden" for="signup-email">
+                Email address
+              </label>
+              <input
+                id="signup-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="you@example.com"
+              />
+              <button class="btn btn--primary" type="submit">
+                Send Me the Guide
+              </button>
+              <p class="email-form-note">
+                No spam, unsubscribe anytime. See the{' '}
+                <a href="/policies/privacy">privacy policy</a>.
+              </p>
+            </form>
+          ) : (
+            <div class="email-fallback">
+              <p>
+                The studio list opens soon. Until then, the fastest way to get
+                the guide when it drops:
+              </p>
+              <div class="email-fallback-actions">
+                <a class="btn btn--primary" href={SITE.instagram} rel="noopener">
+                  Follow {SITE.instagramHandle}
+                </a>
+                <a class="btn btn--outline" href={`mailto:${SITE.email}?subject=Closet%20Reset%20guide`}>
+                  Email Susanne
+                </a>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .email-capture-panel {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    background: var(--blush-soft);
+    border-color: rgba(201, 149, 138, 0.25);
+  }
+
+  .email-capture-copy h2 {
+    margin-bottom: 0.5em;
+  }
+
+  .email-capture-copy .lede {
+    margin-bottom: 0;
+  }
+
+  .email-form {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .email-form input {
+    font: inherit;
+    padding: 0.85rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--espresso);
+  }
+
+  .email-form input:focus-visible {
+    outline: 2px solid var(--sage-deep);
+    outline-offset: 1px;
+  }
+
+  .email-form-note {
+    font-size: 0.8rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  .email-fallback p {
+    color: var(--umber);
+    margin-bottom: 1.2rem;
+  }
+
+  .email-fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  @media (max-width: 800px) {
+    .email-capture-panel {
+      grid-template-columns: 1fr;
+      gap: 1.8rem;
+    }
+  }
+</style>

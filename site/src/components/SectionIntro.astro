@@ -1,0 +1,54 @@
+---
+/**
+ * Standard section opener: letterspaced eyebrow, serif headline, optional lede.
+ * Use `center` for symmetric sections; default is left-aligned editorial.
+ */
+interface Props {
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  center?: boolean;
+  /** Heading level, defaults to h2. */
+  as?: 'h1' | 'h2' | 'h3';
+}
+
+const { eyebrow, title, lede, center = false, as: Tag = 'h2' } = Astro.props;
+---
+
+<div class:list={['section-intro', { 'section-intro--center': center }]}>
+  <p class:list={['eyebrow', { 'eyebrow--center': center }]}>{eyebrow}</p>
+  <Tag set:html={title} />
+  {lede && <p class="lede">{lede}</p>}
+  <slot />
+</div>
+
+<style>
+  .section-intro {
+    margin-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  .section-intro--center {
+    text-align: center;
+  }
+
+  .section-intro--center .lede {
+    margin-inline: auto;
+  }
+
+  .section-intro :global(h1),
+  .section-intro :global(h2),
+  .section-intro :global(h3) {
+    max-width: 22ch;
+  }
+
+  .section-intro--center :global(h1),
+  .section-intro--center :global(h2),
+  .section-intro--center :global(h3) {
+    margin-inline: auto;
+  }
+
+  .section-intro :global(em) {
+    font-style: italic;
+    color: var(--gold);
+  }
+</style>

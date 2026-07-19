@@ -1,0 +1,100 @@
+---
+// DRAFT: have a qualified attorney review before launch.
+import Prose from '../../layouts/Prose.astro';
+import { SITE } from '../../lib/site';
+---
+
+<!-- DRAFT: have a qualified attorney review before launch -->
+<Prose
+  title="Privacy Policy"
+  description="What Styled by Susanne collects (booking form, email signup, basic analytics), how it's used, which third parties are involved, and how to ask for deletion."
+  eyebrow="Policies"
+  intro="What I collect, why, and the promise underneath it all: your information is never for sale."
+  dateline="Draft, last updated July 18, 2026"
+>
+  <h2>The short version</h2>
+  <p>
+    I collect only what I need to reply to you and do good work, I use it only
+    for the reasons you gave it to me, I never sell it, and if you ever want
+    something deleted, you just have to ask.
+  </p>
+
+  <h2>What I collect</h2>
+  <ul>
+    <li>
+      <strong>The booking questionnaire.</strong> When you book a style
+      conversation, the form (currently run through Google Forms) asks for
+      your name, contact details, and answers about your closet, lifestyle,
+      and style goals.
+    </li>
+    <li>
+      <strong>Email signup.</strong> When the studio email list goes live,
+      signing up shares your email address so I can send you the guide and
+      newsletter you asked for.
+    </li>
+    <li>
+      <strong>Basic analytics.</strong> When analytics are enabled, I&rsquo;ll
+      see aggregate information about how the site is used: which pages are
+      visited and where visitors come from. I use it to make the site better,
+      not to identify individual people.
+    </li>
+  </ul>
+
+  <h2>How I use it</h2>
+  <ul>
+    <li>Replying to your inquiry and having the style conversation.</li>
+    <li>Providing the styling services you book.</li>
+    <li>Sending the newsletter and free resources you signed up for.</li>
+  </ul>
+  <p>
+    That&rsquo;s it. I don&rsquo;t sell your information, rent it, trade it,
+    or hand it to advertisers. Ever.
+  </p>
+
+  <h2>Third parties involved</h2>
+  <ul>
+    <li>
+      <strong>Google Forms</strong> processes the booking questionnaire, so
+      Google&rsquo;s own privacy policy applies to that form.
+    </li>
+    <li>
+      <strong>An email provider</strong> (still being chosen) will store the
+      email list once it&rsquo;s live. I&rsquo;ll name the provider here when
+      it&rsquo;s selected.
+    </li>
+    <li>
+      <strong>Affiliate networks.</strong> When you click a shoppable link,
+      retailers and networks like Amazon and Mavely may set their own cookies
+      on <em>their</em> sites to track the purchase. Those cookies live on
+      their sites, under their privacy policies; I don&rsquo;t control them.
+      More in the
+      <a href="/policies/affiliate-disclosure">affiliate disclosure</a>.
+    </li>
+  </ul>
+
+  <h2>Client photos and stories</h2>
+  <p>
+    Your closet is private. Nothing from an engagement (photos, before and
+    afters, quotes, or any detail of your story) is ever shared publicly
+    without your written permission first. No permission, no post. Simple.
+  </p>
+
+  <h2>Deletion and questions</h2>
+  <p>
+    Want your questionnaire answers, email address, or anything else deleted?
+    Email me and I&rsquo;ll take care of it and confirm when it&rsquo;s done.
+    The same address works for any privacy question.
+  </p>
+
+  <h2>An honest note</h2>
+  <p>
+    This policy is a plain-English draft written to tell you the truth about
+    how the site works today. A formal legal review is pending before launch,
+    and this page will be updated if anything changes, but the commitments
+    above stand either way.
+  </p>
+
+  <p>
+    Questions? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+  </p>
+</Prose>

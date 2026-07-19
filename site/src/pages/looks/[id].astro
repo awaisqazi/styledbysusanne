@@ -1,0 +1,477 @@
+---
+import { Image } from 'astro:assets';
+import { render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import EmailCapture from '../../components/EmailCapture.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getPublishedLooks, LOOK_CATEGORIES } from '../../lib/looks';
+
+export async function getStaticPaths() {
+  const looks = await getPublishedLooks();
+  // Looks are sorted newest first; wrap around at both ends so browsing
+  // never dead-ends.
+  return looks.map((entry, i) => ({
+    params: { id: entry.id },
+    props: {
+      entry,
+      newer: looks[(i - 1 + looks.length) % looks.length],
+      older: looks[(i + 1) % looks.length],
+    },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'looks'>;
+  newer: CollectionEntry<'looks'>;
+  older: CollectionEntry<'looks'>;
+}
+
+const { entry, newer, older } = Astro.props;
+const { Content } = await render(entry);
+
+const { title, date, category, image, imageAlt, teaser, whyItWorks, pieces, similar, service } =
+  entry.data;
+
+const categoryLabel = LOOK_CATEGORIES[category];
+const dateLabel = date.toLocaleDateString('en-US', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** Hide prev/next when there is only one published look. */
+const hasNav = newer.id !== entry.id;
+
+const description = `${teaser} Shop the exact pieces, similar finds at other price points, and the one styling principle that makes it work.`;
+---
+
+<Base title={title} description={description} ogImage={image.src}>
+  <article class="section look">
+    <div class="container look-grid">
+      <!-- ==================================================== Sticky photo -->
+      <div class="look-media">
+        <div class="arch-frame look-photo">
+          <Image
+            src={image}
+            alt={imageAlt}
+            widths={[480, 720, 1040]}
+            sizes="(max-width: 940px) 92vw, 42vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+      </div>
+
+      <!-- ========================================================= Content -->
+      <div class="look-body">
+        <header class="look-header">
+          <p class="eyebrow">{categoryLabel} · {dateLabel}</p>
+          <h1>{title}</h1>
+          <p class="lede">{teaser}</p>
+        </header>
+
+        <div class="prose look-story">
+          <Content />
+        </div>
+
+        <aside class="look-why card">
+          <p class="look-why-label">Why this works</p>
+          <p>{whyItWorks}</p>
+        </aside>
+
+        <p class="look-disclosure">
+          Quick honesty note: the shopping links below may be affiliate
+          links, which means I may earn a small commission if you buy through
+          them, at no extra cost to you. <a
+            href="/policies/affiliate-disclosure">Here's how that works</a>.
+        </p>
+
+        {
+          pieces.length > 0 && (
+            <section class="look-shop" aria-labelledby="exact-pieces">
+              <h2 id="exact-pieces">Shop the exact pieces</h2>
+              <ul class="piece-list" role="list">
+                {pieces.map((piece) => (
+                  <li class="piece">
+                    {piece.url ? (
+                      <a
+                        class="piece-link"
+                        href={piece.url}
+                        target="_blank"
+                        rel="nofollow sponsored noopener"
+                      >
+                        {piece.label}
+                      </a>
+                    ) : (
+                      <span class="piece-name">{piece.label}</span>
+                    )}
+                    {piece.source && <span class="piece-source">{piece.source}</span>}
+                    {!piece.url && <span class="piece-soon">shoppable link coming soon</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          similar.length > 0 && (
+            <section class="look-shop" aria-labelledby="similar-pieces">
+              <h2 id="similar-pieces">Similar at other price points</h2>
+              <ul class="similar-list" role="list">
+                {similar.map((item) => (
+                  <li class="similar">
+                    {item.url ? (
+                      <a
+                        class="piece-link"
+                        href={item.url}
+                        target="_blank"
+                        rel="nofollow sponsored noopener"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <span class="piece-name">{item.label}</span>
+                    )}
+                    {item.note && <p class="similar-note">{item.note}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          service && (
+            <aside class="look-service card">
+              <p class="look-service-label">Make it yours</p>
+              <p class="look-service-blurb">
+                {service.blurb ??
+                  `This exact styling need has a service built for it: ${service.label}.`}
+              </p>
+              <a class="btn btn--primary" href={service.href}>
+                {service.label}
+              </a>
+            </aside>
+          )
+        }
+      </div>
+    </div>
+  </article>
+
+  <!-- ================================================== Prev / next looks -->
+  {
+    hasNav && (
+      <nav class="look-nav section--ivory" aria-label="More looks">
+        <div class="container">
+          <div class="look-nav-head">
+            <p class="eyebrow">Keep browsing</p>
+            <a class="text-link" href="/looks">All looks</a>
+          </div>
+          <div class="look-nav-grid">
+            <a class="look-nav-card card" href={`/looks/${newer.id}`}>
+              <div class="look-nav-thumb">
+                <Image
+                  src={newer.data.image}
+                  alt=""
+                  widths={[160, 320]}
+                  sizes="74px"
+                  loading="lazy"
+                />
+              </div>
+              <div>
+                <p class="look-nav-dir">← Newer look</p>
+                <p class="look-nav-title">{newer.data.title}</p>
+              </div>
+            </a>
+            <a class="look-nav-card look-nav-card--older card" href={`/looks/${older.id}`}>
+              <div class="look-nav-thumb">
+                <Image
+                  src={older.data.image}
+                  alt=""
+                  widths={[160, 320]}
+                  sizes="74px"
+                  loading="lazy"
+                />
+              </div>
+              <div>
+                <p class="look-nav-dir">Older look →</p>
+                <p class="look-nav-title">{older.data.title}</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </nav>
+    )
+  }
+
+  <EmailCapture
+    id="save-this-look"
+    title="Save looks like this"
+    lede="Monthly outfit formulas and new shoppable looks, straight to your inbox, plus first access to new services."
+  />
+
+  <CtaBand
+    title="Want outfits like this waiting in your own closet?"
+    secondaryLabel="Browse All Looks"
+    secondaryHref="/looks"
+  />
+</Base>
+
+<style>
+  .look {
+    padding-block: clamp(3rem, 2rem + 3.5vw, 5.5rem) var(--section-pad);
+  }
+
+  .look-grid {
+    display: grid;
+    grid-template-columns: 0.92fr 1.08fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: start;
+  }
+
+  .look-media {
+    position: sticky;
+    top: 6.5rem;
+  }
+
+  .look-photo {
+    aspect-ratio: 4 / 5;
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* Header */
+  .look-header {
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.8rem;
+  }
+
+  .look-header h1 {
+    font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem);
+    margin-bottom: 0.4em;
+  }
+
+  .look-header .lede {
+    margin-bottom: 0;
+  }
+
+  /* Why this works: same idiom as the homepage featured look */
+  .look-why {
+    padding: 1.4rem 1.6rem;
+    margin: 2rem 0;
+    border-left: 2px solid var(--gold);
+  }
+
+  .look-why-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .look-why p:last-child {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  /* Affiliate disclosure, kept immediately above the shopping lists */
+  .look-disclosure {
+    font-size: 0.85rem;
+    color: var(--umber);
+    background: var(--ivory);
+    border-radius: var(--radius);
+    padding: 0.95rem 1.2rem;
+    margin: 0 0 0.6rem;
+  }
+
+  /* Shopping lists */
+  .look-shop {
+    margin-top: 2.2rem;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .look-shop h2 {
+    font-size: 1.7rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .piece-list,
+  .similar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .piece {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.8rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .piece-link {
+    font-weight: 480;
+  }
+
+  .piece-name {
+    color: var(--espresso);
+  }
+
+  .piece-source {
+    font-size: 0.68rem;
+    font-weight: 570;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--umber);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+
+  .piece-soon {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--umber);
+  }
+
+  .similar {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .similar-note {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--umber);
+    margin: 0.2rem 0 0;
+  }
+
+  /* Make it yours */
+  .look-service {
+    padding: 1.8rem;
+    margin-top: 2.6rem;
+    border: 1px solid var(--gold-hairline);
+  }
+
+  .look-service-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .look-service-blurb {
+    font-size: 0.98rem;
+    color: var(--umber);
+    margin-bottom: 1.3rem;
+    max-width: 46ch;
+  }
+
+  /* Prev / next */
+  .look-nav {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  .look-nav-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .look-nav-head .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .look-nav-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+
+  .look-nav-card {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1rem 1.2rem;
+    text-decoration: none;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+
+  .look-nav-card:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+
+  .look-nav-card--older {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+
+  .look-nav-thumb {
+    width: 4.6rem;
+    flex-shrink: 0;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-arch);
+    overflow: hidden;
+    background: var(--ivory);
+  }
+
+  .look-nav-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .look-nav-dir {
+    font-size: 0.7rem;
+    font-weight: 570;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin: 0 0 0.3rem;
+  }
+
+  .look-nav-title {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 940px) {
+    .look-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .look-media {
+      position: static;
+      max-width: 26rem;
+      margin-inline: auto;
+      width: 100%;
+    }
+
+    .look-nav-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .look-nav-card--older {
+      flex-direction: row;
+      text-align: left;
+    }
+  }
+</style>

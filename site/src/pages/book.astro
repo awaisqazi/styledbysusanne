@@ -1,0 +1,281 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import { SITE, BOOKING_FORM_URL } from '../lib/site';
+
+const embeddedFormUrl = `${BOOKING_FORM_URL}?embedded=true`;
+
+const steps = [
+  {
+    title: 'Fill out the questionnaire',
+    detail:
+      'A short style questionnaire: a few minutes on your closet, your calendar, and what you wish getting dressed felt like. There are no wrong answers.',
+  },
+  {
+    title: 'We talk',
+    detail:
+      'Thirty relaxed minutes about your closet, your life, and what you want your style to say. Less “consultation,” more coffee with a friend who takes notes.',
+  },
+  {
+    title: 'You decide',
+    detail:
+      'You get my honest recommendation and an exact quote. Then you book only if it feels right. Sometimes the right answer is the smallest service. I’ll say so.',
+  },
+];
+---
+
+<Base
+  title="Book a Style Conversation"
+  description="Start with a complimentary, 30-minute style conversation, no prep needed. Fill out the short questionnaire and get an exact quote for Chicago or virtual styling."
+>
+  <!-- ============================================================ Hero -->
+  <section class="book-hero">
+    <div class="container container--narrow text-center">
+      <p class="eyebrow eyebrow--center">Let&rsquo;s do this</p>
+      <h1>Book a <em class="serif-italic">Style Conversation</em></h1>
+      <p class="lede">
+        It&rsquo;s complimentary, it&rsquo;s 30 minutes, and there is nothing to
+        prepare. A messy closet isn&rsquo;t a problem; messy closets are the
+        point.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================================================== What happens -->
+  <section class="section section--ivory steps">
+    <div class="container">
+      <SectionIntro
+        eyebrow="What happens"
+        title="Three steps, zero pressure"
+        center
+      />
+      <ol class="steps-grid" role="list">
+        {
+          steps.map((step, i) => (
+            <li class="step card">
+              <span class="step-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ====================================================== Primary CTA -->
+  <section class="section cta">
+    <div class="container container--narrow text-center">
+      <a
+        class="btn btn--gold cta-button"
+        href={BOOKING_FORM_URL}
+        target="_blank"
+        rel="noopener"
+      >
+        Open the Style Questionnaire
+      </a>
+      <p class="cta-alt">
+        Prefer people over forms? Same, honestly. <a
+          href={SITE.instagram} rel="noopener">DM me on Instagram</a>
+        <span class="cta-dot" aria-hidden="true">·</span> email <a
+          href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        <span class="cta-dot" aria-hidden="true">·</span> call or text <a
+          href={SITE.phoneHref}>{SITE.phone}</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================ Embedded questionnaire -->
+  <section class="section section--ivory questionnaire" id="questionnaire">
+    <div class="container container--narrow">
+      <p class="questionnaire-note">
+        The same questionnaire, right here, or use the button above to open it
+        in a new tab. Either way it lands with me.
+      </p>
+      <div class="card questionnaire-card">
+        <iframe
+          src={embeddedFormUrl}
+          title="Style questionnaire"
+          width="100%"
+          height="1400"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================ Reassurance strip -->
+  <section class="reassurance" aria-label="Good to know">
+    <div class="container">
+      <ul class="reassurance-list" role="list">
+        <li>Complimentary</li>
+        <li>No obligation</li>
+        <li>Chicago + virtual</li>
+        <li>Replies within 1–2 business days</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================= Sign-off -->
+  <div class="signoff text-center">
+    <p class="script signoff-script" aria-hidden="true">Xo, Sus</p>
+  </div>
+</Base>
+
+<style>
+  /* Hero */
+  .book-hero {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6.5rem) clamp(3rem, 2rem + 3vw, 5rem);
+  }
+
+  .book-hero h1 em {
+    color: var(--gold);
+  }
+
+  .book-hero .lede {
+    margin-inline: auto;
+  }
+
+  /* Steps */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+  }
+
+  .step {
+    padding: 2.1rem 1.9rem;
+  }
+
+  .step-num {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: 50%;
+    margin-bottom: 1.2rem;
+  }
+
+  .step h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .step p {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  /* Primary CTA */
+  .cta {
+    padding-block: clamp(3.5rem, 2.5rem + 3vw, 5.5rem);
+  }
+
+  .cta-button {
+    font-size: 1.02rem;
+    padding: 1.15rem 2.8rem;
+  }
+
+  .cta-alt {
+    margin: 1.8rem 0 0;
+    font-size: 0.92rem;
+    color: var(--umber);
+  }
+
+  .cta-alt a {
+    color: var(--espresso);
+    font-weight: 520;
+  }
+
+  .cta-dot {
+    color: var(--gold);
+    margin-inline: 0.35rem;
+  }
+
+  /* Questionnaire */
+  .questionnaire-note {
+    text-align: center;
+    font-size: 0.92rem;
+    color: var(--umber);
+    max-width: 44ch;
+    margin: 0 auto 1.8rem;
+  }
+
+  .questionnaire-card {
+    padding: clamp(0.6rem, 0.4rem + 1vw, 1.2rem);
+  }
+
+  .questionnaire-card iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  /* Reassurance strip */
+  .reassurance {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding-block: 1.6rem;
+  }
+
+  .reassurance-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 560;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sage);
+  }
+
+  .reassurance-list li {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .reassurance-list li + li::before {
+    content: '◆';
+    font-size: 0.45rem;
+    color: var(--gold);
+    margin-inline: 1.4rem;
+  }
+
+  /* Sign-off */
+  .signoff {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  .signoff-script {
+    font-size: 2.6rem;
+    color: var(--gold);
+    margin: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .steps-grid {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+  }
+</style>

@@ -1,0 +1,8 @@
+# Internal business documents: kept local, not published in the public repo
+WEBSITE_STRATEGY_PLAN.md
+LINKTREE_AUDIT.md
+research-screenshots/
+
+# Local tooling
+.claude/
+.DS_Store

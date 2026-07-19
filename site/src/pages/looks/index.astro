@@ -1,0 +1,243 @@
+---
+import Base from '../../layouts/Base.astro';
+import LookCard from '../../components/LookCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getPublishedLooks, LOOK_CATEGORIES, type LookCategory } from '../../lib/looks';
+
+const looks = await getPublishedLooks();
+
+/** Only offer filter chips for categories that actually have a published look. */
+const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((category) =>
+  looks.some((look) => look.data.category === category),
+);
+---
+
+<Base
+  title="Shop the Looks"
+  description="Real outfits from Susanne's closet to yours: each one a real day, one transferable style principle, and links to shop the exact or similar pieces."
+>
+  <!-- ============================================================ Hero -->
+  <section class="looks-hero">
+    <div class="container">
+      <p class="eyebrow">Shop the looks</p>
+      <h1>Real outfits, from my closet to <em class="serif-italic">yours</em></h1>
+      <p class="lede">
+        Every look here is a real day and a real outfit: styled on me,
+        photographed in my gold mirror, and broken down into one style
+        principle you can steal, plus links to shop the exact or similar
+        pieces.
+      </p>
+      <p class="looks-disclosure">
+        Honesty first: some of the product links on these pages are affiliate
+        links, which means I may earn a small commission if you shop through
+        them, at no extra cost to you. <a
+          href="/policies/affiliate-disclosure">Here's exactly how that works</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ Grid -->
+  <section class="looks-browse">
+    <div class="container">
+      <div
+        class="filter-chips"
+        role="group"
+        aria-label="Filter looks by category"
+        data-filter-bar
+        hidden
+      >
+        <button
+          class="filter-chip"
+          type="button"
+          data-filter="all"
+          aria-pressed="true"
+        >
+          All looks
+        </button>
+        {
+          categories.map((category) => (
+            <button
+              class="filter-chip"
+              type="button"
+              data-filter={category}
+              aria-pressed="false"
+            >
+              {LOOK_CATEGORIES[category]}
+            </button>
+          ))
+        }
+      </div>
+
+      <ul class="looks-grid" role="list">
+        {
+          looks.map((look, i) => (
+            <li data-look-category={look.data.category}>
+              <LookCard look={look} eager={i < 3} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================= From my closet to yours -->
+  <section class="section section--ivory looks-outro">
+    <div class="container container--narrow text-center">
+      <p class="eyebrow eyebrow--center">Beyond the links</p>
+      <h2>Want this taste applied to <em class="serif-italic">your</em> closet?</h2>
+      <p class="lede looks-outro-lede">
+        Shopping my looks is the free sample. The real magic is opening your
+        own closet and finding outfits like these already built; that's what
+        my styling services are for. And if you'd like pieces like these
+        sourced for your life (not mine) all year round, that's literally the
+        Digital Stylist's job.
+      </p>
+      <div class="looks-outro-actions">
+        <a class="btn btn--primary" href="/services">Explore Styling Services</a>
+        <a class="btn btn--outline" href="/services/ongoing-styling">Meet the Digital Stylist</a>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Let's find out what your version of these looks like"
+    secondaryLabel="Browse Styling Services"
+    secondaryHref="/services"
+  />
+</Base>
+
+<script>
+  // Progressive enhancement: without JS every look is visible and the
+  // filter bar stays hidden. With JS, reveal the chips and filter the grid.
+  const bar = document.querySelector<HTMLElement>('[data-filter-bar]');
+
+  if (bar) {
+    bar.hidden = false;
+
+    const chips = Array.from(
+      bar.querySelectorAll<HTMLButtonElement>('button[data-filter]'),
+    );
+    const items = Array.from(
+      document.querySelectorAll<HTMLLIElement>('li[data-look-category]'),
+    );
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const filter = chip.dataset.filter ?? 'all';
+        for (const c of chips) {
+          c.setAttribute('aria-pressed', String(c === chip));
+        }
+        for (const item of items) {
+          item.hidden = filter !== 'all' && item.dataset.lookCategory !== filter;
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  /* Hero */
+  .looks-hero {
+    padding-block: clamp(3.5rem, 2.5rem + 3.5vw, 6rem) clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+
+  .looks-hero h1 {
+    margin-bottom: 0.45em;
+  }
+
+  .looks-hero h1 em {
+    color: var(--gold);
+  }
+
+  .looks-hero .lede {
+    max-width: 44em;
+  }
+
+  .looks-disclosure {
+    font-size: 0.85rem;
+    color: var(--umber);
+    max-width: 52em;
+    margin: 1.4rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--gold-hairline);
+  }
+
+  /* Browse */
+  .looks-browse {
+    padding-block: 0 var(--section-pad);
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 2.4rem;
+  }
+
+  .filter-chip {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 550;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--espresso);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.5rem 1.15rem;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition),
+      border-color var(--transition);
+  }
+
+  .filter-chip:hover {
+    border-color: var(--gold);
+  }
+
+  .filter-chip[aria-pressed='true'] {
+    background: var(--espresso);
+    border-color: var(--espresso);
+    color: var(--paper);
+  }
+
+  .looks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Outro band */
+  .looks-outro h2 em {
+    color: var(--gold);
+  }
+
+  .looks-outro-lede {
+    margin-inline: auto;
+    margin-bottom: 2.2rem;
+  }
+
+  .looks-outro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .looks-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .looks-grid {
+      grid-template-columns: 1fr;
+      max-width: 26rem;
+      margin-inline: auto;
+    }
+  }
+</style>

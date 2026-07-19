@@ -1,0 +1,607 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import ServiceFamilyCard from '../components/ServiceFamilyCard.astro';
+import EmailCapture from '../components/EmailCapture.astro';
+import FaqItem from '../components/FaqItem.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SITE } from '../lib/site';
+import { FAMILIES, STANDARD_STEPS } from '../data/services';
+import { FAQS } from '../data/faq';
+import { getPublishedLooks } from '../lib/looks';
+
+import heroPhoto from '../assets/photos/look-blush-neutrals.jpg';
+import susannePhoto from '../assets/photos/look-color-office.jpg';
+
+const looks = await getPublishedLooks();
+const featuredLook = looks.find((l) => l.data.featured) ?? looks[0];
+const homeFaqs = FAQS.filter((f) => f.featured);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: SITE.name,
+  description: SITE.description,
+  url: SITE.domain,
+  email: SITE.email,
+  telephone: SITE.phone,
+  image: new URL('/og-default.jpg', SITE.domain).toString(),
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Chicago',
+    addressRegion: 'IL',
+    addressCountry: 'US',
+  },
+  areaServed: ['Chicago', 'Virtual'],
+  sameAs: [SITE.instagram],
+  founder: { '@type': 'Person', name: 'Susanne Faris' },
+};
+---
+
+<Base title={SITE.name} description={SITE.description} schema={schema}>
+  <!-- ============================================================ Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Chicago + virtual personal styling</p>
+        <h1>
+          Your wardrobe should feel like the person you&rsquo;re <em
+            class="serif-italic">becoming</em>.
+        </h1>
+        <p class="lede">
+          Thoughtful personal styling that brings clarity to your closet,
+          confidence to your choices, and ease to every morning.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="/book">Book a Style Conversation</a>
+          <a class="btn btn--outline" href="#paths">Find My Best Service</a>
+        </div>
+        <p class="hero-note">
+          Every engagement starts with a complimentary 30-minute conversation
+          · {SITE.location}
+        </p>
+      </div>
+      <div class="hero-media">
+        <div class="hero-arch-outline" aria-hidden="true"></div>
+        <div class="arch-frame hero-photo">
+          <Image
+            src={heroPhoto}
+            alt="Susanne in a soft blush and cream outfit, photographed in her signature gold arched mirror."
+            widths={[480, 720, 1040]}
+            sizes="(max-width: 900px) 88vw, 42vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================= Problem recognition -->
+  <section class="section section--ivory problems">
+    <div class="container">
+      <ul class="problems-list" role="list">
+        <li>“My closet is full, but nothing feels right.”</li>
+        <li>“My style hasn't caught up with my life.”</li>
+        <li>“I need polished outfits without spending hours on them.”</li>
+      </ul>
+      <p class="problems-outro">
+        If any of those sound familiar, you're exactly who I work with.
+        <a class="text-link" href="#paths">Choose your path</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================ Choose your path -->
+  <section class="section" id="paths">
+    <div class="container">
+      <SectionIntro
+        eyebrow="Work with Susanne"
+        title="Start with the decision that fits your life"
+        lede="Not six packages to compare: three simple paths, each with a recommended first step."
+        center
+      />
+      <div class="paths-grid">
+        {FAMILIES.map((family) => <ServiceFamilyCard family={family} />)}
+      </div>
+      <p class="paths-flagship">
+        Want the full transformation? <a
+          href="/services/the-susanne-standard">Meet The Susanne Standard →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================ The Susanne Standard -->
+  <section class="section section--ivory standard">
+    <div class="container standard-grid">
+      <div class="standard-intro">
+        <SectionIntro
+          eyebrow="The method"
+          title="The <em>Susanne</em> Standard"
+          lede="Seven steps that turn a chaotic closet into a wardrobe system: visible, repeatable, and unmistakably yours."
+        />
+        <a class="btn btn--primary" href="/services/the-susanne-standard">
+          Explore the Flagship
+        </a>
+      </div>
+      <ol class="standard-steps">
+        {
+          STANDARD_STEPS.map((step, i) => (
+            <li class="standard-step">
+              <span class="standard-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div>
+                <h3>{step.name}</h3>
+                <p class="standard-outcome serif-italic">{step.outcome}</p>
+                <p class="standard-detail">{step.detail}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ======================================================== Outcomes -->
+  <section class="section outcomes">
+    <div class="container">
+      <SectionIntro
+        eyebrow="What clients walk away with"
+        title="Not just outfits, a system"
+        center
+      />
+      <div class="outcomes-grid">
+        <div class="outcome card">
+          <p class="outcome-title">A closet where everything belongs</p>
+          <p>
+            Every piece fits your body, your calendar, and who you are now.
+            The rest leaves with me, donation run included.
+          </p>
+        </div>
+        <div class="outcome card">
+          <p class="outcome-title">Outfits, photographed and ready</p>
+          <p>
+            Complete looks built from your own wardrobe, captured in a
+            digital style library you can open every morning.
+          </p>
+        </div>
+        <div class="outcome card">
+          <p class="outcome-title">Mornings measured in minutes</p>
+          <p>
+            Decision fatigue is the real enemy. When the system works,
+            getting dressed becomes the easiest part of your day.
+          </p>
+        </div>
+      </div>
+      <p class="outcomes-note">
+        First client stories are being gathered now from pilot engagements; <a
+          href="/client-stories">read how they'll be told</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================== Featured look -->
+  {
+    featuredLook && (
+      <section class="section section--ivory featured-look">
+        <div class="container featured-grid">
+          <div class="featured-media">
+            <div class="arch-frame featured-photo">
+              <Image
+                src={featuredLook.data.image}
+                alt={featuredLook.data.imageAlt}
+                widths={[480, 720, 1040]}
+                sizes="(max-width: 900px) 88vw, 40vw"
+              />
+            </div>
+          </div>
+          <div class="featured-copy">
+            <p class="eyebrow">Featured shoppable look</p>
+            <h2>{featuredLook.data.title}</h2>
+            <p class="lede">{featuredLook.data.teaser}</p>
+            <div class="featured-why card">
+              <p class="featured-why-label">Why it works</p>
+              <p>{featuredLook.data.whyItWorks}</p>
+            </div>
+            <div class="featured-actions">
+              <a class="btn btn--primary" href={`/looks/${featuredLook.id}`}>
+                Shop This Look
+              </a>
+              <a class="btn btn--outline" href="/looks">
+                Browse All Looks
+              </a>
+            </div>
+            <p class="featured-disclosure">
+              Shoppable pages may contain affiliate links: <a
+                href="/policies/affiliate-disclosure">how that works</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- =================================================== Meet Susanne -->
+  <section class="section meet">
+    <div class="container meet-grid">
+      <div class="meet-media">
+        <div class="arch-frame arch-frame--outlined meet-photo">
+          <div>
+            <Image
+              src={susannePhoto}
+              alt="Susanne smiling in her mirror, wearing a white knit and a pastel watercolor skirt."
+              widths={[420, 640, 920]}
+              sizes="(max-width: 900px) 80vw, 34vw"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="meet-copy">
+        <SectionIntro
+          eyebrow="Meet Susanne"
+          title="Clothing is a person's first language"
+          lede="What you wear communicates authority, clarity, confidence, and intent long before you speak. My work is aligning that message with who you actually are."
+        />
+        <p>
+          I believe great style should feel effortless, personal, and bring
+          out your most confident self. My approach is thoughtful and
+          collaborative, focused on ease, intention, and helping you feel
+          polished without ever feeling overdone. (And yes, we'll have fun
+          doing it. Closets are my happy place.)
+        </p>
+        <p class="script meet-signature" aria-hidden="true">Xo, Sus</p>
+        <a class="text-link" href="/about">More about Susanne</a>
+      </div>
+    </div>
+  </section>
+
+  <EmailCapture />
+
+  <!-- ====================================================== FAQ teaser -->
+  <section class="section faq-teaser">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="Good questions"
+        title="Asked often, answered honestly"
+        center
+      />
+      <div>
+        {
+          homeFaqs.map((faq) => (
+            <FaqItem question={faq.question}>
+              <Fragment set:html={faq.answer} />
+            </FaqItem>
+          ))
+        }
+      </div>
+      <p class="faq-teaser-more">
+        <a class="text-link" href="/faq">All questions, answered</a>
+      </p>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Let's make getting dressed the easiest part of your day"
+    secondaryLabel="Explore Services"
+    secondaryHref="/services"
+  />
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding-block: clamp(3rem, 2rem + 4vw, 6.5rem);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .hero-copy h1 {
+    margin-bottom: 0.5em;
+  }
+
+  .hero-copy h1 em {
+    color: var(--gold);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 2rem 0 1.4rem;
+  }
+
+  .hero-note {
+    font-size: 0.85rem;
+    color: var(--umber);
+    letter-spacing: 0.02em;
+  }
+
+  .hero-media {
+    position: relative;
+    max-width: 30rem;
+    justify-self: end;
+    width: 100%;
+  }
+
+  .hero-photo {
+    aspect-ratio: 4 / 5.1;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .hero-arch-outline {
+    position: absolute;
+    inset: -1.1rem 1.4rem 1.1rem -1.4rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: var(--radius-arch);
+    z-index: -1;
+  }
+
+  /* Problems */
+  .problems-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+    list-style: none;
+    margin: 0 0 2.4rem;
+    padding: 0;
+  }
+
+  .problems-list li {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.35;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--gold-hairline);
+    color: var(--espresso);
+  }
+
+  .problems-outro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 1.2rem;
+    margin: 0;
+    color: var(--umber);
+  }
+
+  /* Paths */
+  .paths-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+  }
+
+  .paths-flagship {
+    text-align: center;
+    margin: 2.8rem 0 0;
+    color: var(--umber);
+  }
+
+  .paths-flagship a {
+    font-weight: 550;
+    color: var(--espresso);
+  }
+
+  /* Standard */
+  .standard-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.35fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: start;
+  }
+
+  .standard-intro {
+    position: sticky;
+    top: 7rem;
+  }
+
+  .standard-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .standard-step {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 1.4rem;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .standard-step:first-child {
+    padding-top: 0.4rem;
+  }
+
+  .standard-num {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: 50%;
+  }
+
+  .standard-step h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .standard-outcome {
+    color: var(--sage);
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .standard-detail {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 52ch;
+  }
+
+  /* Outcomes */
+  .outcomes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+  }
+
+  .outcome {
+    padding: 2rem 1.9rem;
+  }
+
+  .outcome-title {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 0.7rem;
+  }
+
+  .outcome p:last-child {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  .outcomes-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--umber);
+    margin: 2.6rem 0 0;
+  }
+
+  /* Featured look */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .featured-photo {
+    aspect-ratio: 4 / 5;
+    box-shadow: var(--shadow-lift);
+    max-width: 27rem;
+  }
+
+  .featured-why {
+    padding: 1.4rem 1.6rem;
+    margin: 0.4rem 0 1.8rem;
+    border-left: 2px solid var(--gold);
+  }
+
+  .featured-why-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .featured-why p:last-child {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  .featured-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .featured-disclosure {
+    font-size: 0.8rem;
+    color: var(--umber);
+    margin: 1.2rem 0 0;
+  }
+
+  /* Meet */
+  .meet-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .meet-photo {
+    max-width: 24rem;
+  }
+
+  .meet-photo > div {
+    aspect-ratio: 4 / 5;
+  }
+
+  .meet-signature {
+    font-size: 2.6rem;
+    color: var(--gold);
+    margin: 1.6rem 0 1.8rem;
+  }
+
+  .meet-copy :global(.section-intro) {
+    margin-bottom: 1rem;
+  }
+
+  /* FAQ teaser */
+  .faq-teaser-more {
+    text-align: center;
+    margin: 2.6rem 0 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .paths-grid,
+    .outcomes-grid {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .standard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .standard-intro {
+      position: static;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid,
+    .featured-grid,
+    .meet-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-media {
+      justify-self: center;
+      max-width: 26rem;
+    }
+
+    .featured-photo,
+    .meet-photo {
+      margin-inline: auto;
+    }
+
+    .problems-list {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+    }
+  }
+</style>

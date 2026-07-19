@@ -1,0 +1,203 @@
+---
+import { SITE, NAV } from '../lib/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <p class="footer-wordmark">
+          Styled <span class="serif-italic footer-by">by</span> Susanne
+        </p>
+        <p class="footer-tagline">
+          Personal style that makes getting dressed effortless, and makes who
+          you are unmistakable.
+        </p>
+        <p class="script footer-signature" aria-hidden="true">Xo, Sus</p>
+      </div>
+
+      <nav class="footer-col" aria-label="Footer">
+        <h2>Explore</h2>
+        <ul>
+          {NAV.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+          <li><a href="/book">Book a Style Conversation</a></li>
+          <li><a href="/links">Instagram Links</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-col">
+        <h2>Services</h2>
+        <ul>
+          <li><a href="/services/reset-my-wardrobe">Reset My Wardrobe</a></li>
+          <li><a href="/services/style-a-moment">Style a Moment</a></li>
+          <li><a href="/services/ongoing-styling">Ongoing Styling</a></li>
+          <li><a href="/services/the-susanne-standard">The Susanne Standard</a></li>
+          <li><a href="/client-stories">Client Stories</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h2>Get in Touch</h2>
+        <ul>
+          <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><a href={SITE.phoneHref}>{SITE.phone}</a></li>
+          <li>{SITE.location}</li>
+          <li>
+            <a href={SITE.instagram} rel="noopener">Instagram {SITE.instagramHandle}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="footer-rule" />
+
+    <p class="footer-disclosure">
+      Some links on this site are affiliate links. If you purchase through
+      them, Susanne may earn a small commission at no extra cost to you;
+      it helps keep the free styling content coming.
+    </p>
+
+    <div class="footer-legal">
+      <p>© {year} {SITE.name} · {SITE.serviceArea}</p>
+      <ul>
+        <li><a href="/policies/affiliate-disclosure">Affiliate Disclosure</a></li>
+        <li><a href="/policies/privacy">Privacy</a></li>
+        <li><a href="/policies/terms">Terms</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--espresso);
+    color: rgba(250, 246, 239, 0.85);
+    padding-block: 4.5rem 2.5rem;
+    margin-top: auto;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+    gap: 3rem;
+  }
+
+  .footer-wordmark {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    margin: 0 0 1rem;
+  }
+
+  .footer-by {
+    color: var(--gold-hairline);
+    font-weight: 400;
+  }
+
+  .footer-tagline {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    max-width: 30ch;
+  }
+
+  .footer-signature {
+    font-size: 2.1rem;
+    color: var(--gold-hairline);
+    margin: 1.4rem 0 0;
+  }
+
+  .footer-col h2 {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-hairline);
+    margin: 0 0 1.2rem;
+  }
+
+  .footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .footer-col a {
+    text-decoration: none;
+    color: rgba(250, 246, 239, 0.85);
+    transition: color var(--transition);
+  }
+
+  .footer-col a:hover {
+    color: var(--paper);
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+  }
+
+  .footer-rule {
+    border: 0;
+    border-top: 1px solid rgba(250, 246, 239, 0.15);
+    margin: 3rem 0 1.5rem;
+  }
+
+  .footer-disclosure {
+    font-size: 0.82rem;
+    color: rgba(250, 246, 239, 0.6);
+    max-width: 62ch;
+  }
+
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.82rem;
+    color: rgba(250, 246, 239, 0.6);
+  }
+
+  .footer-legal p {
+    margin: 0;
+  }
+
+  .footer-legal ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .footer-legal a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .footer-legal a:hover {
+    color: var(--paper);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 900px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2.25rem;
+    }
+  }
+</style>

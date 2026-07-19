@@ -1,0 +1,122 @@
+---
+import type { ServiceFamily } from '../data/services';
+
+interface Props {
+  family: ServiceFamily;
+}
+
+const { family } = Astro.props;
+const recommended = family.services.find((s) => s.id === family.recommendedStart);
+---
+
+<article class="family-card card">
+  <p class="family-need serif-italic">“{family.need}”</p>
+  <h3 class="family-name">{family.name}</h3>
+  <p class="family-blurb">{family.blurb}</p>
+
+  <ul class="family-services">
+    {
+      family.services.map((service) => (
+        <li>
+          <span class="family-service-name">{service.name}</span>
+          <span class="family-service-price">{service.price}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    recommended && (
+      <p class="family-recommended">
+        <span>Recommended start</span> {recommended.name}
+      </p>
+    )
+  }
+
+  <a class="text-link family-link" href={`/services/${family.slug}`}>
+    Explore {family.shortName ?? family.name}
+  </a>
+</article>
+
+<style>
+  .family-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 2.2rem 2.1rem 2.3rem;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+
+  .family-card:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-3px);
+  }
+
+  .family-need {
+    font-size: 1.2rem;
+    color: var(--umber);
+    margin: 0 0 1.4rem;
+    min-height: 3.2em;
+  }
+
+  .family-name {
+    margin-bottom: 0.5rem;
+  }
+
+  .family-blurb {
+    font-size: 0.97rem;
+    color: var(--umber);
+    margin-bottom: 1.5rem;
+  }
+
+  .family-services {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .family-services li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 0.95rem;
+  }
+
+  .family-service-name {
+    font-weight: 530;
+  }
+
+  .family-service-price {
+    color: var(--umber);
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  .family-recommended {
+    font-size: 0.85rem;
+    color: var(--sage-deep);
+    background: var(--sage-soft);
+    border-radius: var(--radius);
+    padding: 0.55rem 0.9rem;
+    margin: 0 0 1.6rem;
+  }
+
+  .family-recommended span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 0.15rem;
+  }
+
+  .family-link {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+</style>

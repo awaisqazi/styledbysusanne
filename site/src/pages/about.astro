@@ -1,0 +1,492 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SITE } from '../lib/site';
+
+import portraitPhoto from '../assets/photos/look-blush-neutrals.jpg';
+import mirrorPhoto from '../assets/photos/look-red-dress.jpg';
+
+/**
+ * The three moves behind the philosophy: aligning inner identity
+ * with outer expression (from the About-Me Instagram carousel).
+ */
+const moves = [
+  {
+    name: 'Recognize',
+    body: 'We name what no longer represents you: the role you left, the size from another chapter, the “someday” pieces holding your hangers hostage. You can’t build forward until you can see clearly.',
+  },
+  {
+    name: 'Elevate',
+    body: 'We raise the energy of what you wear through strategic choices in color, texture, and silhouette: small, deliberate shifts that read as polish, never as effort.',
+  },
+  {
+    name: 'Rebuild',
+    body: 'We rebuild a wardrobe that reinforces your evolution instead of anchoring you in the past, so your closet keeps up with you, not the other way around.',
+  },
+];
+
+const principles = [
+  {
+    title: 'Together, always',
+    body: 'This is a collaboration, not a verdict. Every keep-or-donate call is made side by side, and “it makes me happy” is a perfectly valid reason to keep something. My job is clearing the noise, not replacing your taste with mine.',
+  },
+  {
+    title: 'Ease and intention',
+    body: 'The goal is always the same: you, polished without ever feeling overdone. If an outfit takes a committee to assemble, it hasn’t earned a place in your rotation.',
+  },
+  {
+    title: 'Humor, welcome and encouraged',
+    body: 'Closets are emotional places, and some of what we find in them is genuinely funny. We will laugh (kindly, and usually at the dress that still has its tags from three years ago).',
+  },
+  {
+    title: 'Every body, every budget',
+    body: 'All sizes, all ages, all aesthetics. I’m as happy sourcing from Amazon as from a boutique, and your clothing budget is yours: you set it, I respect it.',
+  },
+  {
+    title: 'Chicago, and everywhere',
+    body: `In-closet sessions run across Chicago from my ${SITE.location} home base, and virtual styling works beautifully over video and text: ${SITE.serviceArea}.`,
+  },
+];
+
+const nextSteps = [
+  {
+    title: 'Work with me',
+    blurb: 'Three simple paths (a wardrobe reset, a big moment, or ongoing support), each with a recommended first step.',
+    label: 'Explore services',
+    href: '/services',
+  },
+  {
+    title: 'See the styling',
+    blurb: 'Real outfits from real days, each with the one transferable principle that makes it work.',
+    label: 'Shop the looks',
+    href: '/looks',
+  },
+  {
+    title: 'Say hello',
+    blurb: 'A complimentary 30-minute style conversation: no prep, no pressure, messy closets welcome.',
+    label: 'Book a conversation',
+    href: '/book',
+  },
+];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About Susanne',
+  url: `${SITE.domain}/about`,
+  mainEntity: {
+    '@type': 'Person',
+    name: 'Susanne Faris',
+    jobTitle: 'Personal Stylist',
+    email: SITE.email,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Chicago',
+      addressRegion: 'IL',
+      addressCountry: 'US',
+    },
+    worksFor: {
+      '@type': 'ProfessionalService',
+      name: SITE.name,
+      url: SITE.domain,
+    },
+    sameAs: [SITE.instagram],
+  },
+};
+---
+
+<Base
+  title="About Susanne"
+  description="Meet Susanne Faris, the Chicago personal stylist behind Styled by Susanne: her philosophy, how she works, and why style should feel effortless and personal."
+  schema={schema}
+>
+  <!-- ============================================================ Hero -->
+  <section class="about-hero">
+    <div class="container about-hero-grid">
+      <div class="about-hero-copy">
+        <p class="eyebrow">About Susanne</p>
+        <h1>Hi, I&rsquo;m <em class="serif-italic">Susanne</em>.</h1>
+        <p class="lede">
+          I&rsquo;m a personal stylist, and I believe great style should feel
+          effortless, personal, and bring out your most confident self. Not a
+          costume. Not a trend report. You, expressed properly.
+        </p>
+        <p class="about-hero-note">
+          {SITE.location} · in your closet or over video, anywhere
+        </p>
+      </div>
+      <div class="about-hero-media">
+        <div class="arch-frame arch-frame--outlined about-hero-photo">
+          <div>
+            <Image
+              src={portraitPhoto}
+              alt="Susanne in a soft blush and cream outfit, photographed in her signature gold arched mirror."
+              widths={[480, 720, 1040]}
+              sizes="(max-width: 900px) 88vw, 38vw"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== Philosophy -->
+  <section class="section section--ivory philosophy">
+    <div class="container">
+      <SectionIntro
+        eyebrow="My philosophy"
+        title="Clothing is a person&rsquo;s <em>first language</em>"
+        lede="What you wear communicates authority, clarity, confidence, and intent long before you say a word."
+      />
+      <div class="philosophy-grid">
+        <div class="philosophy-copy">
+          <p>
+            Here&rsquo;s the part most people miss: your wardrobe is always
+            sending signals. Always. Whether you chose those signals
+            consciously or they arrived by default (the blazer you bought for
+            a job you no longer have, the “fine, whatever” jeans), the message
+            still goes out.
+          </p>
+          <p>
+            My work is aligning your inner identity with your outer
+            expression, so the person people meet is the person you actually
+            are now. In practice, that alignment happens in three moves.
+          </p>
+        </div>
+        <ol class="moves" role="list">
+          {
+            moves.map((move, i) => (
+              <li class="move">
+                <span class="move-num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3>{move.name}</h3>
+                <p>{move.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== How I work -->
+  <section class="section how">
+    <div class="container how-grid">
+      <div class="how-intro">
+        <SectionIntro
+          eyebrow="How I work"
+          title="Thoughtful, collaborative, and honestly? Fun."
+          lede="A few things you can count on in every engagement, whether we spend two hours in your closet or a season texting outfit checks."
+        />
+      </div>
+      <ul class="how-list" role="list">
+        {
+          principles.map((principle) => (
+            <li class="how-item">
+              <h3>{principle.title}</h3>
+              <p>{principle.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================================================ The mirror + me -->
+  <section class="section section--ivory mirror">
+    <div class="container mirror-grid">
+      <div class="mirror-media">
+        <div class="arch-frame mirror-photo">
+          <Image
+            src={mirrorPhoto}
+            alt="Susanne in a red eyelet dress, photographed in the gold arch mirror against her green wall."
+            widths={[420, 640, 920]}
+            sizes="(max-width: 900px) 80vw, 36vw"
+          />
+        </div>
+      </div>
+      <div class="mirror-copy">
+        <SectionIntro
+          eyebrow="The signature mirror"
+          title="Yes, it&rsquo;s <em>that</em> mirror"
+          lede="If you found me on Instagram, you know the setting: the green wall, the gold arch. It’s where every outfit formula I share gets its screen test."
+        />
+        <p>
+          These days, the mirror&rsquo;s favorite job is pointing at your wins
+          too: the closet that finally makes sense, the outfit you built in
+          four minutes, the donation pile leaving the building.
+        </p>
+        <p>
+          And off camera? I&rsquo;m the person who will happily referee your
+          keep-or-donate pile, cheer out loud when the “maybe” stack shrinks,
+          and chase the perfect scarf across the internet like it owes me
+          money. Closets are my happy place. I&rsquo;d love to visit yours.
+        </p>
+        <p class="script mirror-signature" aria-hidden="true">Xo, Sus</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== Next steps -->
+  <section class="section next-steps">
+    <div class="container">
+      <SectionIntro
+        eyebrow="Where to next"
+        title="Three good doors"
+        center
+      />
+      <div class="next-grid">
+        {
+          nextSteps.map((step) => (
+            <div class="next-card card">
+              <h3>{step.title}</h3>
+              <p>{step.blurb}</p>
+              <a class="text-link" href={step.href}>
+                {step.label}
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Now that you know me, let&rsquo;s talk about you"
+    secondaryLabel="Explore Services"
+    secondaryHref="/services"
+  />
+</Base>
+
+<style>
+  /* Hero */
+  .about-hero {
+    padding-block: clamp(3rem, 2rem + 4vw, 6.5rem);
+    overflow: hidden;
+  }
+
+  .about-hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .about-hero-copy h1 {
+    margin-bottom: 0.5em;
+  }
+
+  .about-hero-copy h1 em {
+    color: var(--gold);
+  }
+
+  .about-hero-note {
+    margin-top: 1.8rem;
+    font-size: 0.85rem;
+    color: var(--umber);
+    letter-spacing: 0.02em;
+  }
+
+  .about-hero-media {
+    max-width: 27rem;
+    justify-self: end;
+    width: 100%;
+  }
+
+  .about-hero-photo > div {
+    aspect-ratio: 4 / 5;
+  }
+
+  /* Philosophy */
+  .philosophy-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.35fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: start;
+  }
+
+  .philosophy-copy p {
+    color: var(--umber);
+    max-width: 44ch;
+  }
+
+  .philosophy-copy p:last-child {
+    margin-bottom: 0;
+  }
+
+  .moves {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.2rem;
+  }
+
+  .move {
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--gold-hairline);
+  }
+
+  .move-num {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 0.7rem;
+  }
+
+  .move h3 {
+    font-size: 1.45rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .move p {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  /* How I work */
+  .how-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.35fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: start;
+  }
+
+  .how-intro {
+    position: sticky;
+    top: 7rem;
+  }
+
+  .how-intro :global(.section-intro) {
+    margin-bottom: 0;
+  }
+
+  .how-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .how-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .how-item:first-child {
+    padding-top: 0.4rem;
+  }
+
+  .how-item h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .how-item p {
+    font-size: 0.97rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 56ch;
+  }
+
+  /* Mirror */
+  .mirror-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .mirror-photo {
+    aspect-ratio: 4 / 5;
+    max-width: 24rem;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .mirror-copy :global(.section-intro) {
+    margin-bottom: 1.2rem;
+  }
+
+  .mirror-copy p {
+    max-width: 54ch;
+  }
+
+  .mirror-signature {
+    font-size: 2.6rem;
+    color: var(--gold);
+    margin: 1.4rem 0 0;
+  }
+
+  /* Next steps */
+  .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+  }
+
+  .next-card {
+    padding: 2rem 1.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .next-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .next-card p {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin-bottom: 1.4rem;
+    flex-grow: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .philosophy-grid,
+    .how-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .how-intro {
+      position: static;
+    }
+
+    .moves {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+      max-width: 34rem;
+    }
+
+    .next-grid {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .about-hero-grid,
+    .mirror-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-hero-media {
+      justify-self: center;
+      max-width: 24rem;
+    }
+
+    .mirror-photo {
+      margin-inline: auto;
+    }
+  }
+</style>

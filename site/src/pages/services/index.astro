@@ -1,0 +1,418 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+import ServiceFamilyCard from '../../components/ServiceFamilyCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SITE } from '../../lib/site';
+import { FAMILIES } from '../../data/services';
+
+import flatlayPhoto from '../../assets/photos/flatlay-neutrals.jpg';
+
+const giftMailto = `mailto:${SITE.email}?subject=${encodeURIComponent('A styling gift')}`;
+
+const steps = [
+  {
+    name: 'The style conversation',
+    meta: 'Complimentary · 30 minutes',
+    detail:
+      'We talk about your life, your closet, and what you want your style to say. By the end I’ll recommend the service that genuinely fits, and sometimes that’s the smallest one on the menu.',
+  },
+  {
+    name: 'Your session(s)',
+    meta: 'In your closet, or over video',
+    detail:
+      'The hands-on part: editing, styling, trying things on, laughing at what we find in the back of the closet. In Chicago I come to you; everywhere else, video works beautifully.',
+  },
+  {
+    name: 'The follow-up',
+    meta: 'Yours to keep',
+    detail:
+      'Photographed outfits, a curated list of what’s actually worth adding, and a plan that keeps working after I’ve gone home. You keep a system, not just a tidy afternoon.',
+  },
+];
+
+const pricingPoints = [
+  {
+    title: 'Ranges first, then a real number',
+    detail:
+      'The ranges you see cover the typical scope of each service. Your exact quote is confirmed after our style conversation, before anything is booked, always.',
+  },
+  {
+    title: 'Your clothing budget stays yours',
+    detail:
+      'It’s always separate from my service fee. You set it, I respect it, and I don’t earn a thing by talking you into buying more.',
+  },
+  {
+    title: 'Chicago travel is included',
+    detail:
+      'Getting me to your closet anywhere in the city is on me. Beyond the city, we agree on travel terms up front: no surprise line items.',
+  },
+];
+---
+
+<Base
+  title="Work With Susanne"
+  description="Personal styling in Chicago and virtually: wardrobe resets, occasion styling, and ongoing support, each starting with a free 30-minute style conversation."
+>
+  <!-- ======================================================== Page hero -->
+  <section class="services-hero">
+    <div class="container container--narrow">
+      <p class="eyebrow eyebrow--center">Work with Susanne</p>
+      <h1>
+        Three paths. One goal: a wardrobe that works like <em
+          class="serif-italic">you</em> do.
+      </h1>
+      <p class="lede">
+        Whether you need a two-hour closet edit or the full transformation,
+        every engagement starts the same way: a complimentary 30-minute
+        style conversation. No prep, no pressure, and nothing booked until
+        we both know it&rsquo;s the right fit.
+      </p>
+      <div class="services-hero-actions">
+        <a class="btn btn--primary" href="/book">Book a Style Conversation</a>
+        <a class="btn btn--outline" href="#paths">See the Three Paths</a>
+      </div>
+      <p class="services-hero-note">No prep needed · {SITE.serviceArea}</p>
+    </div>
+  </section>
+
+  <!-- ============================================ The three families -->
+  <section class="section section--ivory" id="paths">
+    <div class="container">
+      <SectionIntro
+        eyebrow="Choose your path"
+        title="Start with the sentence that sounds like you"
+        lede="Each path opens with the words I hear most from the clients on it. Pick the one that could be yours; every card shows exactly what’s inside and where to begin."
+        center
+      />
+      <div class="paths-grid">
+        {FAMILIES.map((family) => <ServiceFamilyCard family={family} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== How it works -->
+  <section class="section how">
+    <div class="container">
+      <SectionIntro
+        eyebrow="How it works"
+        title="Three steps, start to finish"
+        center
+      />
+      <ol class="how-steps" role="list">
+        {
+          steps.map((step, i) => (
+            <li class="how-step">
+              <span class="how-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3>{step.name}</h3>
+              <p class="how-meta serif-italic">{step.meta}</p>
+              <p class="how-detail">{step.detail}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- =================================================== The flagship -->
+  <section class="section section--espresso flagship">
+    <div class="container flagship-grid">
+      <div class="flagship-copy">
+        <p class="eyebrow">The flagship</p>
+        <h2>
+          The <em class="serif-italic">Susanne</em> Standard
+        </h2>
+        <p class="lede">
+          My complete seven-step method in one engagement: the
+          conversation, the full closet edit, donation departure, a curated
+          investment list, sourcing, look sessions, and a photographed
+          digital wardrobe you can open every morning. It&rsquo;s
+          everything I know how to do, done in order.
+        </p>
+        <div class="flagship-actions">
+          <a class="btn btn--gold" href="/services/the-susanne-standard">
+            Meet the Susanne Standard
+          </a>
+        </div>
+        <p class="flagship-note">
+          Priced by proposal · Currently onboarding a small number of clients
+        </p>
+      </div>
+      <div class="flagship-media">
+        <div class="arch-frame arch-frame--outlined flagship-photo">
+          <div>
+            <Image
+              src={flatlayPhoto}
+              alt="A flat lay of neutral wardrobe staples: soft creams, warm tans, and gold accents arranged with intention."
+              widths={[420, 516]}
+              sizes="(max-width: 900px) 80vw, 24rem"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================== Pricing philosophy -->
+  <section class="section section--ivory pricing">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="A note on pricing"
+        title="Clear numbers, no surprises"
+        lede="Nobody should have to squint at a pricing page. Here’s how the numbers work around here."
+        center
+      />
+      <div class="pricing-points">
+        {
+          pricingPoints.map((point) => (
+            <div class="pricing-point">
+              <h3>{point.title}</h3>
+              <p>{point.detail}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================== Style as a gift -->
+  <section class="section gift">
+    <div class="container container--narrow text-center">
+      <p class="eyebrow eyebrow--center">Give style as a gift</p>
+      <h2>The rare gift that gets used every morning</h2>
+      <p class="lede gift-lede">
+        A Taste Test for a friend starting her next chapter. An Occasion
+        Edit for a bride. A Deep Detox for a partner who&rsquo;d rather do
+        anything but shop. Styling makes an unusually thoughtful gift;
+        email me and we&rsquo;ll arrange something personal, sized to the
+        person and the moment. (No plastic gift cards here; every gift
+        starts as a conversation.)
+      </p>
+      <a class="text-link" href={giftMailto}>Email me about a gift</a>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Not sure which path is yours? That&rsquo;s exactly what the conversation is for"
+    secondaryLabel="Read the FAQ"
+    secondaryHref="/faq"
+  />
+</Base>
+
+<style>
+  /* Hero */
+  .services-hero {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem)
+      clamp(2.75rem, 2rem + 3vw, 5rem);
+    text-align: center;
+  }
+
+  .services-hero h1 {
+    max-width: 20ch;
+    margin-inline: auto;
+    margin-bottom: 0.5em;
+  }
+
+  .services-hero h1 em {
+    color: var(--gold);
+  }
+
+  .services-hero .lede {
+    margin-inline: auto;
+  }
+
+  .services-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0 1.4rem;
+  }
+
+  .services-hero-note {
+    font-size: 0.85rem;
+    color: var(--umber);
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  /* Paths */
+  .paths-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+  }
+
+  /* How it works */
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 1.5rem + 2vw, 3.2rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: none;
+  }
+
+  .how-step {
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--gold-hairline);
+  }
+
+  .how-num {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: 50%;
+    margin-bottom: 1.2rem;
+  }
+
+  .how-step h3 {
+    font-size: 1.45rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .how-meta {
+    color: var(--sage);
+    font-size: 1.02rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .how-detail {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 34ch;
+  }
+
+  /* Flagship */
+  .flagship-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .flagship h2 {
+    max-width: 16ch;
+  }
+
+  .flagship h2 em {
+    color: var(--gold-hairline);
+  }
+
+  .flagship .lede {
+    margin-bottom: 2rem;
+  }
+
+  .flagship-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .flagship-note {
+    font-size: 0.85rem;
+    color: rgba(250, 246, 239, 0.66);
+    letter-spacing: 0.02em;
+    margin: 1.4rem 0 0;
+  }
+
+  .flagship-media {
+    justify-self: end;
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  .flagship-photo > div {
+    aspect-ratio: 4 / 4.8;
+  }
+
+  /* Pricing */
+  .pricing-points {
+    display: grid;
+    gap: 0;
+  }
+
+  .pricing-point {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 1rem 2.5rem;
+    align-items: start;
+    padding: 1.7rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .pricing-point:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pricing-point h3 {
+    font-size: 1.35rem;
+    margin: 0;
+  }
+
+  .pricing-point p {
+    font-size: 0.97rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  /* Gift */
+  .gift {
+    padding-block: clamp(3.5rem, 2.5rem + 3.5vw, 5.5rem);
+  }
+
+  .gift h2 {
+    max-width: 22ch;
+    margin-inline: auto;
+  }
+
+  .gift-lede {
+    margin-inline: auto;
+    margin-bottom: 2rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .paths-grid {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .how-steps {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .how-detail {
+      max-width: 52ch;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .flagship-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .flagship-media {
+      justify-self: center;
+    }
+
+    .pricing-point {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+</style>

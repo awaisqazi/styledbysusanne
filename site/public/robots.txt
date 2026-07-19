@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://styledbysusanne.com/sitemap-index.xml

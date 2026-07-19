@@ -1,0 +1,582 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Base from '../../layouts/Base.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SITE } from '../../lib/site';
+import { FAMILIES } from '../../data/services';
+import type { ServiceFamily } from '../../data/services';
+
+import blushPhoto from '../../assets/photos/look-blush-neutrals.jpg';
+import redDressPhoto from '../../assets/photos/look-red-dress.jpg';
+import colorOfficePhoto from '../../assets/photos/look-color-office.jpg';
+
+export function getStaticPaths() {
+  return FAMILIES.map((f) => ({
+    params: { family: f.slug },
+    props: { family: f },
+  }));
+}
+
+interface Props {
+  family: ServiceFamily;
+}
+
+const { family } = Astro.props;
+
+const photos: Record<string, { src: ImageMetadata; alt: string }> = {
+  'reset-my-wardrobe': {
+    src: blushPhoto,
+    alt: 'Susanne in soft blush and cream neutrals, photographed in her signature gold arched mirror.',
+  },
+  'style-a-moment': {
+    src: redDressPhoto,
+    alt: 'Susanne in a red eyelet dress, styled and ready for a holiday celebration.',
+  },
+  'ongoing-styling': {
+    src: colorOfficePhoto,
+    alt: 'Susanne in a white knit and pastel watercolor skirt: a colorful, polished office look.',
+  },
+};
+const photo = photos[family.slug];
+
+const descriptions: Record<string, string> = {
+  'reset-my-wardrobe':
+    'Closet edits with Susanne, in Chicago or virtually: The Taste Test, The Deep Detox, and The Seasonal Pivot. Clarity on what belongs, what goes, and what is missing.',
+  'style-a-moment':
+    'Occasion styling and trip packing with Susanne: The Occasion Edit and The Suitcase Solo. Weddings, conferences, and travel days, decided well before they arrive.',
+  'ongoing-styling':
+    'Ongoing styling support from Susanne: The Digital Stylist retainer and the flagship Susanne Standard. Polished outfits without hours of figuring them out.',
+};
+
+const ctaTitles: Record<string, string> = {
+  'reset-my-wardrobe': 'Let&rsquo;s make your closet make sense again',
+  'style-a-moment': 'Let&rsquo;s have your moment dressed and decided',
+  'ongoing-styling': 'Keep a stylist one message away',
+};
+
+const others = FAMILIES.filter((f) => f.slug !== family.slug);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'OfferCatalog',
+  name: `${family.name} · ${SITE.name}`,
+  url: new URL(`/services/${family.slug}`, SITE.domain).toString(),
+  itemListElement: family.services.map((service, i) => ({
+    '@type': 'Offer',
+    position: i + 1,
+    itemOffered: {
+      '@type': 'Service',
+      name: service.name,
+      description: service.description,
+      provider: { '@type': 'Person', name: 'Susanne Faris' },
+      areaServed: ['Chicago', 'Virtual'],
+    },
+  })),
+};
+---
+
+<Base
+  title={family.name}
+  description={descriptions[family.slug] ?? SITE.description}
+  schema={schema}
+>
+  <!-- ============================================================ Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <nav class="eyebrow crumb" aria-label="Breadcrumb">
+          <a href="/services">Work with Susanne</a>
+          <span class="crumb-sep" aria-hidden="true">·</span>
+          <span aria-current="page">{family.shortName ?? family.name}</span>
+        </nav>
+        <p class="hero-need serif-italic">&ldquo;{family.need}&rdquo;</p>
+        <h1>{family.name}</h1>
+        <p class="lede">{family.blurb}</p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="/book">Book a Style Conversation</a>
+          <a class="btn btn--outline" href="#services">See What's Included</a>
+        </div>
+        <p class="hero-note">
+          {family.promise} · {SITE.serviceArea}
+        </p>
+      </div>
+      <div class="hero-media">
+        <div class="hero-arch-outline" aria-hidden="true"></div>
+        <div class="arch-frame hero-photo">
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            widths={[420, 680, 960]}
+            sizes="(max-width: 900px) 88vw, 38vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== Services -->
+  <section class="section section--ivory" id="services">
+    <div class="container">
+      <SectionIntro
+        eyebrow="The services"
+        title="Pick your starting point"
+        lede={family.promise}
+      />
+      <div class="svc-list">
+        {
+          family.services.map((service) => {
+            const isRecommended = service.id === family.recommendedStart;
+            return (
+              <article
+                class:list={['svc', 'card', { 'svc--recommended': isRecommended }]}
+                id={service.id}
+              >
+                <div class="svc-head">
+                  {isRecommended && (
+                    <p class="svc-badge">
+                      <span>Recommended start</span>
+                      The easiest first yes
+                    </p>
+                  )}
+                  <h2>{service.name}</h2>
+                  <p class="svc-tagline serif-italic">{service.tagline}</p>
+                  <p class="svc-meta">
+                    <span>{service.duration}</span>
+                    <span class="svc-meta-sep" aria-hidden="true">·</span>
+                    <span class="svc-price">{service.price}</span>
+                  </p>
+                  <p class="svc-desc">{service.description}</p>
+                </div>
+                <div class="svc-detail">
+                  <p class="svc-label">What's included</p>
+                  <ul class="svc-includes" role="list">
+                    {service.includes.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                  <p class="svc-bestfor">
+                    <span class="svc-label">Best for</span>
+                    {service.bestFor}
+                  </p>
+                  <a class="btn btn--primary svc-cta" href="/book">
+                    Start with a Conversation
+                  </a>
+                </div>
+              </article>
+            );
+          })
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================== Reassurance strip -->
+  <section class="assure" aria-label="How booking works">
+    <div class="container">
+      <ul class="assure-list" role="list">
+        <li>
+          <strong>A conversation before anything else.</strong> Every
+          engagement starts with a complimentary 30-minute chat: no prep,
+          no pressure.
+        </li>
+        <li>
+          <strong>An exact quote before you book.</strong> Once I understand
+          your closet and your scope, you'll know your fee to the dollar.
+        </li>
+        <li>
+          <strong>Your clothing budget stays yours.</strong> My fee covers
+          the styling; what you spend on pieces is separate, and always
+          your call.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================================================ Cross-navigation -->
+  <section class="section others">
+    <div class="container">
+      <SectionIntro
+        eyebrow="Not quite your situation?"
+        title="Two other ways in"
+        lede="Every closet chapter is different. If one of these sounds more like this season of your life, start there instead."
+        center
+      />
+      <div class="others-grid">
+        {
+          others.map((other) => (
+            <a class="other-card card" href={`/services/${other.slug}`}>
+              <p class="other-need serif-italic">&ldquo;{other.need}&rdquo;</p>
+              <p class="other-name">{other.name}</p>
+              <span class="other-link">
+                Explore {other.shortName ?? other.name}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+      <p class="others-flagship">
+        And when you want the whole method (closet edit through digital
+        wardrobe, start to finish), that's
+        <a href="/services/the-susanne-standard">The Susanne Standard →</a>
+      </p>
+    </div>
+  </section>
+
+  <CtaBand
+    title={ctaTitles[family.slug]}
+    secondaryLabel="Compare All Paths"
+    secondaryHref="/services"
+  />
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding-block: clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .crumb {
+    margin-bottom: 1.4rem;
+  }
+
+  .crumb a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold-hairline);
+    padding-bottom: 0.1em;
+    transition: border-color var(--transition), color var(--transition);
+  }
+
+  .crumb a:hover {
+    color: var(--espresso);
+    border-color: var(--gold);
+  }
+
+  .crumb-sep {
+    color: var(--gold);
+  }
+
+  .hero-need {
+    font-size: clamp(1.3rem, 1.1rem + 0.9vw, 1.65rem);
+    line-height: 1.4;
+    color: var(--umber);
+    max-width: 24em;
+    margin: 0 0 1rem;
+  }
+
+  .hero-copy h1 {
+    margin-bottom: 0.45em;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 2rem 0 1.4rem;
+  }
+
+  .hero-note {
+    font-size: 0.85rem;
+    color: var(--umber);
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .hero-media {
+    position: relative;
+    max-width: 28rem;
+    justify-self: end;
+    width: 100%;
+  }
+
+  .hero-photo {
+    aspect-ratio: 4 / 5.1;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .hero-arch-outline {
+    position: absolute;
+    inset: -1.1rem 1.4rem 1.1rem -1.4rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: var(--radius-arch);
+    z-index: -1;
+  }
+
+  /* Service cards */
+  .svc-list {
+    display: grid;
+    gap: 1.8rem;
+  }
+
+  .svc {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(1.8rem, 1.4rem + 1.6vw, 3rem);
+    padding: clamp(1.9rem, 1.5rem + 1.5vw, 2.8rem);
+  }
+
+  .svc--recommended {
+    border-color: var(--gold-hairline);
+  }
+
+  .svc-badge {
+    align-self: flex-start;
+    font-size: 0.85rem;
+    color: var(--sage-deep);
+    background: var(--sage-soft);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.9rem;
+    margin: 0 0 1.3rem;
+  }
+
+  .svc-badge span {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 0.1rem;
+  }
+
+  .svc-head {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .svc-head h2 {
+    font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.4rem);
+    margin-bottom: 0.25em;
+  }
+
+  .svc-tagline {
+    font-size: 1.12rem;
+    color: var(--sage);
+    margin: 0 0 1.1rem;
+  }
+
+  .svc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 560;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--umber);
+    border-top: 1px solid var(--gold-hairline);
+    padding-top: 0.9rem;
+    margin: 0 0 1rem;
+  }
+
+  .svc-meta-sep {
+    color: var(--gold);
+  }
+
+  .svc-price {
+    color: var(--espresso);
+    font-weight: 620;
+  }
+
+  .svc-desc {
+    font-size: 0.98rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 46ch;
+  }
+
+  .svc-detail {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .svc-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 0.6rem;
+  }
+
+  .svc-includes {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+  }
+
+  .svc-includes li {
+    position: relative;
+    font-size: 0.95rem;
+    padding: 0.55rem 0 0.55rem 1.4rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .svc-includes li::before {
+    content: '◆';
+    position: absolute;
+    left: 0;
+    top: 1.05em;
+    font-size: 0.45rem;
+    color: var(--gold);
+  }
+
+  .svc-bestfor {
+    font-size: 0.92rem;
+    color: var(--umber);
+    margin: 0 0 1.6rem;
+  }
+
+  .svc-bestfor .svc-label {
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .svc-cta {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+
+  /* Reassurance strip */
+  .assure {
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    padding-block: 2.4rem;
+  }
+
+  .assure-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .assure-list li {
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--umber);
+    padding-left: 1.3rem;
+    border-left: 1px solid var(--gold-hairline);
+  }
+
+  .assure-list strong {
+    display: block;
+    font-weight: 580;
+    color: var(--espresso);
+    margin-bottom: 0.2rem;
+  }
+
+  /* Cross-navigation */
+  .others-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.8rem;
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+
+  .other-card {
+    display: flex;
+    flex-direction: column;
+    padding: 2.1rem 2rem;
+    text-decoration: none;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+
+  .other-card:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-3px);
+  }
+
+  .other-need {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    color: var(--umber);
+    margin: 0 0 1.1rem;
+  }
+
+  .other-name {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 500;
+    margin: 0 0 1.4rem;
+  }
+
+  .other-link {
+    margin-top: auto;
+    align-self: flex-start;
+    font-size: 0.88rem;
+    font-weight: 550;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--gold-hairline);
+    padding-bottom: 0.2rem;
+    transition: border-color var(--transition);
+  }
+
+  .other-link::after {
+    content: ' →';
+  }
+
+  .other-card:hover .other-link {
+    border-color: var(--gold);
+  }
+
+  .others-flagship {
+    text-align: center;
+    margin: 2.8rem auto 0;
+    max-width: 44rem;
+    color: var(--umber);
+  }
+
+  .others-flagship a {
+    font-weight: 550;
+    color: var(--espresso);
+    white-space: nowrap;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-media {
+      justify-self: center;
+      max-width: 24rem;
+    }
+
+    .svc {
+      grid-template-columns: 1fr;
+    }
+
+    .svc-cta {
+      margin-top: 0.4rem;
+    }
+
+    .assure-list {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+    }
+
+    .others-grid {
+      grid-template-columns: 1fr;
+      max-width: 34rem;
+    }
+  }
+</style>

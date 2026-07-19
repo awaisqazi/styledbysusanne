@@ -1,0 +1,67 @@
+---
+/**
+ * Full-width espresso closing band with the primary booking CTA.
+ * Drop at the bottom of most pages, above the footer.
+ */
+interface Props {
+  title?: string;
+  lede?: string;
+  primaryLabel?: string;
+  primaryHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+}
+
+const {
+  title = 'Ready when you are.',
+  lede = 'Every engagement begins with a complimentary 30-minute style conversation: no prep, no pressure, just a real chat about your closet and your life.',
+  primaryLabel = 'Book a Style Conversation',
+  primaryHref = '/book',
+  secondaryLabel,
+  secondaryHref,
+} = Astro.props;
+---
+
+<section class="section section--espresso cta-band">
+  <div class="container text-center">
+    <p class="eyebrow eyebrow--center">Where style meets intention</p>
+    <h2 set:html={title} />
+    <p class="lede cta-band-lede">{lede}</p>
+    <div class="cta-band-actions">
+      <a class="btn btn--gold" href={primaryHref}>{primaryLabel}</a>
+      {
+        secondaryLabel && secondaryHref && (
+          <a class="btn btn--outline" href={secondaryHref}>
+            {secondaryLabel}
+          </a>
+        )
+      }
+    </div>
+    <p class="script cta-band-signature" aria-hidden="true">Xo, Sus</p>
+  </div>
+</section>
+
+<style>
+  .cta-band h2 {
+    max-width: 20ch;
+    margin-inline: auto;
+  }
+
+  .cta-band-lede {
+    margin-inline: auto;
+    margin-bottom: 2.2rem;
+  }
+
+  .cta-band-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .cta-band-signature {
+    font-size: 2.4rem;
+    color: var(--gold-hairline);
+    margin: 2.6rem 0 0;
+  }
+</style>

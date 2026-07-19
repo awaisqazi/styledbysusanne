@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import FaqItem from '../components/FaqItem.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SITE } from '../lib/site';
+import { FAQS } from '../data/faq';
+
+/** FAQPage structured data: answers stripped to plain text for JSON-LD. */
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer.replace(/<[^>]+>/g, '').trim(),
+    },
+  })),
+};
+---
+
+<Base
+  title="FAQ"
+  description="Honest answers to everything people ask before booking personal styling: location, budgets, sizing, privacy, returns, and how the style conversation works."
+  schema={schema}
+>
+  <section class="section">
+    <div class="container container--narrow">
+      <header class="faq-header">
+        <p class="eyebrow">Good questions</p>
+        <h1>Everything people ask <em class="serif-italic">before</em> booking</h1>
+        <p class="lede">
+          Straight answers about budgets, bodies, privacy, and what actually
+          happens when I show up at your closet. If yours isn&rsquo;t here,
+          ask. I answer honestly, even when the honest answer is
+          &ldquo;you don&rsquo;t need me for that.&rdquo;
+        </p>
+      </header>
+
+      <div class="faq-list">
+        {
+          FAQS.map((faq, i) => (
+            <FaqItem question={faq.question} open={i === 0}>
+              <Fragment set:html={faq.answer} />
+            </FaqItem>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Still have a question?"
+    lede={`Ask it directly: DM ${SITE.instagramHandle} on Instagram or send an email. I read everything, and I'll always tell you which service fits (sometimes it's the smallest one).`}
+    secondaryLabel="Email Susanne"
+    secondaryHref={`mailto:${SITE.email}?subject=A%20question%20before%20booking`}
+  />
+</Base>
+
+<style>
+  .faq-header {
+    margin-bottom: clamp(1.6rem, 1.2rem + 1.5vw, 2.6rem);
+    padding-bottom: 1.8rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .faq-header h1 {
+    font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem);
+    margin-bottom: 0.35em;
+  }
+
+  .faq-header h1 em {
+    color: var(--gold);
+  }
+
+  .faq-header .lede {
+    margin-bottom: 0;
+  }
+</style>

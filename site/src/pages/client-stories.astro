@@ -1,0 +1,363 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SITE } from '../lib/site';
+
+/**
+ * Published client stories only. The collection ships empty (the template
+ * is draft: true); this page renders an honest pre-launch state until real
+ * stories, with written permission, exist. Never invent testimonials.
+ */
+const stories = (await getCollection('stories', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const hasStories = stories.length > 0;
+
+const storyMailto = `mailto:${SITE.email}?subject=${encodeURIComponent(
+  'My Styled by Susanne story',
+)}`;
+
+/** The shape every published story will follow, shown as an outline, not a mock-up. */
+const storyOutline = [
+  {
+    name: 'The situation',
+    body: 'Where she started, in her words. The closet that was full with nothing to wear, the style that hadn’t caught up with the promotion, the suitcase that always overpacked itself.',
+  },
+  {
+    name: 'What we did',
+    body: 'The service we chose and what actually happened: the edit, the keep-or-donate calls, the sourcing, the look sessions. The unglamorous middle, told honestly.',
+  },
+  {
+    name: 'The result, in real numbers',
+    body: 'Concrete outcomes only: pieces removed, outfits created and photographed, minutes given back to every morning. If it can’t be counted or quoted, it doesn’t go in.',
+  },
+];
+---
+
+<Base
+  title="Client Stories"
+  description="How client stories work at Styled by Susanne: real clients, their own words, shared with written permission. The first pilot stories are on their way."
+>
+  <!-- ========================================================== Header -->
+  <section class="stories-hero">
+    <div class="container container--narrow text-center">
+      <p class="eyebrow eyebrow--center">Client stories</p>
+      <h1>
+        Real closets, real results, <em class="serif-italic">told properly</em>.
+      </h1>
+      <p class="lede">
+        Every story on this page will be a real client, in her own words,
+        shared with written permission. That&rsquo;s the whole policy, and
+        it&rsquo;s not negotiable.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================ Story cards, or the pre-launch state -->
+  {
+    hasStories ? (
+      <section class="section section--ivory stories">
+        <div class="container">
+          <div class="stories-grid">
+            {stories.map((story) => (
+              <article class="story card">
+                <p class="story-mark" aria-hidden="true">
+                  &ldquo;
+                </p>
+                <blockquote class="story-quote">{story.data.quote}</blockquote>
+                <p class="story-client">{story.data.client}</p>
+                <dl class="story-facts">
+                  <div>
+                    <dt>The situation</dt>
+                    <dd>{story.data.situation}</dd>
+                  </div>
+                  <div>
+                    <dt>The result</dt>
+                    <dd>{story.data.result}</dd>
+                  </div>
+                </dl>
+                <p class="story-service">{story.data.service}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    ) : (
+      <section class="section section--ivory pre-launch">
+        <div class="container container--narrow">
+          <div class="promise card">
+            <p class="promise-label">Why this page is quiet right now</p>
+            <p>
+              I could fill this page tomorrow with glowing paragraphs and
+              stock-photo smiles. I won&rsquo;t. What appears here will only
+              ever be real clients, in their own words, published with written
+              permission: no composites, no &ldquo;Sarah&nbsp;M.,&rdquo; no
+              borrowed praise.
+            </p>
+            <p>
+              The first pilot engagements are underway right now (closets are
+              being edited as you read this), and their stories are coming as
+              soon as their owners are ready to tell them.
+            </p>
+            <p class="promise-aside">
+              In the meantime, the styling itself is on display in{' '}
+              <a href="/looks">Shop the Looks</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ==================================================== The outline -->
+  <section class="section outline">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="The format"
+        title="What a story will include"
+        lede="Not vague praise: a before, a middle, and a measurable after. Every story follows the same honest arc."
+      />
+      <ol class="outline-steps">
+        {
+          storyOutline.map((step, i) => (
+            <li class="outline-step">
+              <span class="outline-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div>
+                <h3>{step.name}</h3>
+                <p>{step.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ====================================================== Invitation -->
+  <section class="section section--ivory invitation">
+    <div class="container">
+      <div class="invitation-panel card">
+        <div class="invitation-copy">
+          <p class="eyebrow">An open invitation</p>
+          <h2>Worked with me before?</h2>
+          <p class="lede">
+            If we&rsquo;ve stood in a closet together (or met over video with
+            a suitcase on the bed), I would love to tell your story, in your
+            words, with your sign-off on every sentence.
+          </p>
+        </div>
+        <div class="invitation-action">
+          <a class="btn btn--primary" href={storyMailto}>Share Your Story</a>
+          <p class="invitation-note">
+            Opens an email to Susanne, subject line already written, because
+            of course it is.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Be one of the first stories"
+    lede="The clients on this page will have started exactly where you are: one complimentary 30-minute conversation, no prep, no pressure."
+    secondaryLabel="Explore Services"
+    secondaryHref="/services"
+  />
+</Base>
+
+<style>
+  /* Header */
+  .stories-hero {
+    padding-block: clamp(3rem, 2rem + 4vw, 6rem) clamp(2.5rem, 2rem + 3vw, 5rem);
+  }
+
+  .stories-hero h1 {
+    margin-bottom: 0.5em;
+  }
+
+  .stories-hero h1 em {
+    color: var(--gold);
+  }
+
+  .stories-hero .lede {
+    margin-inline: auto;
+  }
+
+  /* Empty-state promise */
+  .promise {
+    padding: clamp(1.8rem, 1.4rem + 2vw, 3rem);
+    border-left: 2px solid var(--gold);
+  }
+
+  .promise-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+
+  .promise p:not(.promise-label) {
+    color: var(--umber);
+    max-width: 58ch;
+  }
+
+  .promise-aside {
+    margin-bottom: 0;
+    font-size: 0.95rem;
+  }
+
+  /* Story cards (rendered once real stories exist) */
+  .stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1.8rem;
+    align-items: start;
+  }
+
+  .story {
+    padding: 2.1rem 2rem 1.9rem;
+  }
+
+  .story-mark {
+    font-family: var(--font-serif);
+    font-size: 3.2rem;
+    line-height: 0.6;
+    color: var(--gold-hairline);
+    margin-bottom: 0.6rem;
+  }
+
+  .story-quote {
+    margin: 0 0 1.1rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.45;
+    color: var(--espresso);
+  }
+
+  .story-client {
+    font-size: 0.85rem;
+    font-weight: 560;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 1.3rem;
+  }
+
+  .story-facts {
+    margin: 0 0 1.3rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line-soft);
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .story-facts dt {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.15rem;
+  }
+
+  .story-facts dd {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--umber);
+  }
+
+  .story-service {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--umber);
+  }
+
+  /* Outline */
+  .outline-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .outline-step {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 1.4rem;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .outline-step:first-child {
+    padding-top: 0.4rem;
+  }
+
+  .outline-num {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--gold-hairline);
+    border-radius: 50%;
+  }
+
+  .outline-step h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .outline-step p {
+    font-size: 0.97rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 54ch;
+  }
+
+  /* Invitation */
+  .invitation-panel {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    background: var(--blush-soft);
+    border-color: rgba(201, 149, 138, 0.25);
+  }
+
+  .invitation-copy h2 {
+    margin-bottom: 0.5em;
+  }
+
+  .invitation-copy .lede {
+    margin-bottom: 0;
+  }
+
+  .invitation-action {
+    justify-self: start;
+  }
+
+  .invitation-note {
+    font-size: 0.8rem;
+    color: var(--umber);
+    margin: 0.9rem 0 0;
+    max-width: 30ch;
+  }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .invitation-panel {
+      grid-template-columns: 1fr;
+      gap: 1.8rem;
+    }
+  }
+</style>

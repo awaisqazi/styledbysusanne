@@ -1,0 +1,674 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+import FaqItem from '../../components/FaqItem.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SITE } from '../../lib/site';
+import { STANDARD_STEPS, getAllServices } from '../../data/services';
+
+import portraitPhoto from '../../assets/photos/look-color-office.jpg';
+import flatlayPhoto from '../../assets/photos/flatlay-neutrals.jpg';
+
+const standard = getAllServices().find((s) => s.id === 'susanne-standard');
+if (!standard) {
+  throw new Error('The susanne-standard service is missing from src/data/services.ts');
+}
+
+const description =
+  'Susanne’s flagship engagement: the complete seven-step method, from a 30-minute style conversation to a photographed digital wardrobe. Chicago, by proposal.';
+
+const stepWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'];
+
+const scenarios = [
+  'The evolving professional whose closet hasn’t caught up with her life.',
+  'A chapter change: new role, new city, new body, new you.',
+  'The woman who is done negotiating with her closet every morning.',
+];
+
+const deliverables = [
+  {
+    title: 'An edited closet',
+    detail:
+      'Every hanger earns its place. What remains fits your body, your calendar, and who you are now.',
+  },
+  {
+    title: 'The donation run, handled',
+    detail:
+      'I take the give-away pile with me on my way out. An instant, guilt-free reset: no bags lingering by the door.',
+  },
+  {
+    title: 'A color-coded curated list',
+    detail:
+      'Strategic must-haves and elevated wants, organized so every future purchase has a purpose.',
+  },
+  {
+    title: 'A photographed look library',
+    detail:
+      'Complete outfits: built, photographed, and organized in a premium wardrobe app you can open every morning.',
+  },
+  {
+    title: '30 days of follow-up support',
+    detail:
+      'Outfit checks, tweaks, and “should I buy this?” questions while your new system settles in.',
+  },
+];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'The Susanne Standard',
+  serviceType: 'Personal styling: flagship wardrobe transformation',
+  description: standard.description,
+  url: new URL('/services/the-susanne-standard', SITE.domain).toString(),
+  provider: {
+    '@type': 'ProfessionalService',
+    name: SITE.name,
+    url: SITE.domain,
+    sameAs: [SITE.instagram],
+  },
+  areaServed: ['Chicago', 'Virtual'],
+};
+---
+
+<Base title="The Susanne Standard" description={description} schema={schema}>
+  <!-- ============================================================ Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">The flagship engagement</p>
+        <h1>The <em class="serif-italic">Susanne</em> Standard</h1>
+        <p class="lede">
+          The complete method, from a focused style conversation to a
+          photographed digital wardrobe on your phone, delivered as one
+          seamless transformation. Everything I do, done in order, done for
+          you.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="/book">Book a Style Conversation</a>
+          <a class="btn btn--outline" href="#method">See the Seven Steps</a>
+        </div>
+        <dl class="hero-meta">
+          <div>
+            <dt>Format</dt>
+            <dd>{standard.duration}</dd>
+          </div>
+          <div>
+            <dt>Where</dt>
+            <dd>Chicago, in your closet</dd>
+          </div>
+          <div>
+            <dt>Investment</dt>
+            <dd>{standard.price}</dd>
+          </div>
+        </dl>
+        <p class="hero-note">
+          Part of <a href="/services/ongoing-styling">Support Me Ongoing</a> ·
+          currently piloting with a small number of clients
+        </p>
+      </div>
+      <div class="hero-media">
+        <div class="arch-frame arch-frame--outlined hero-photo">
+          <div>
+            <Image
+              src={portraitPhoto}
+              alt="Susanne smiling in her gold arched mirror, wearing a white knit and a pastel watercolor skirt."
+              widths={[480, 720, 1040]}
+              sizes="(max-width: 900px) 88vw, 40vw"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== Who it's for -->
+  <section class="section section--ivory who">
+    <div class="container">
+      <p class="eyebrow eyebrow--center who-eyebrow">Who The Standard is for</p>
+      <ul class="who-list" role="list">
+        {scenarios.map((line) => <li>{line}</li>)}
+      </ul>
+      <p class="who-outro">
+        If one of those is you, keep reading; the method below was built for
+        exactly this moment.
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================================================== The method -->
+  <section class="section method" id="method">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="The method"
+        title="Seven steps. One <em>seamless</em> transformation."
+        lede="Nothing here is improvised. The Standard walks the same deliberate path every time; what changes is that it’s shaped entirely around you."
+        center
+      />
+      <ol class="method-steps">
+        {
+          STANDARD_STEPS.map((step, i) => (
+            <li class="method-step">
+              <div class="method-rail" aria-hidden="true">
+                <span class="method-num">{String(i + 1).padStart(2, '0')}</span>
+              </div>
+              <div class="method-body">
+                <p class="method-kicker">Step {stepWords[i]}</p>
+                <h3>{step.name}</h3>
+                <p class="method-outcome serif-italic">{step.outcome}</p>
+                <p class="method-detail">{step.detail}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="method-outro">
+        By the last step, getting dressed isn’t a project anymore. It’s a
+        system, and it’s yours.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================================================== What you keep -->
+  <section class="section section--ivory keep">
+    <div class="container keep-grid">
+      <div class="keep-media">
+        <div class="arch-frame arch-frame--outlined keep-photo">
+          <div>
+            <Image
+              src={flatlayPhoto}
+              alt="A flatlay of neutral wardrobe pieces: soft creams and warm taupes arranged with intention."
+              widths={[380, 516]}
+              sizes="(max-width: 900px) 80vw, 30vw"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="keep-copy">
+        <SectionIntro
+          eyebrow="What you keep"
+          title="The engagement ends. The <em>system</em> stays."
+          lede="The Standard isn’t a day of tidying that unravels by Thursday. When we finish, these are yours for good:"
+        />
+        <ul class="keep-list" role="list">
+          {
+            deliverables.map((item) => (
+              <li class="keep-item">
+                <h3>{item.title}</h3>
+                <p>{item.detail}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== Investment -->
+  <section class="section investment">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="The investment"
+        title="By proposal, on <em>purpose</em>"
+        center
+      />
+      <div class="investment-card card">
+        <p class="investment-price serif-italic">{standard.price}</p>
+        <div class="divider-ornament investment-divider" aria-hidden="true">◆</div>
+        <p class="investment-body">
+          The Standard is currently being piloted with a small number of
+          clients. After your style conversation you’ll receive a clear,
+          fixed proposal (scope, timeline, and investment) before anything
+          is booked. Your clothing budget always remains separate and in
+          your control.
+        </p>
+        <ul class="investment-points" role="list">
+          <li>The conversation is complimentary, and genuinely no-pressure</li>
+          <li>Scope, timeline, and investment in writing, up front</li>
+          <li>Your clothing budget stays yours; I never earn from pushing you to buy more</li>
+        </ul>
+      </div>
+      <p class="investment-note">
+        Honest piloting means the number reflects real scope, not a figure
+        pulled out of the air. And if a smaller service fits your life better,
+        I’ll say so in the conversation. <a
+          class="text-link" href="/book">Start with the conversation</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================================================== Mini FAQ -->
+  <section class="section section--ivory standard-faq">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="Good questions"
+        title="The practical details"
+        center
+      />
+      <div>
+        <FaqItem question="How long does The Standard take?" open>
+          <p>
+            It’s a multi-session engagement, typically spread over two to six
+            weeks. The pace is set mostly by sourcing; the Look Sessions
+            happen after your new pieces arrive, so shipping windows (and
+            your calendar) shape the rhythm. Your proposal maps the timeline
+            before we begin.
+          </p>
+        </FaqItem>
+        <FaqItem question="Do I have to be in Chicago?">
+          <p>
+            The in-closet steps (the Edit, the Departure, and the Look
+            Sessions) are Chicago-based. A virtual adaptation is possible
+            for the right client; ask in your style conversation and we’ll
+            talk honestly about what translates over video and what doesn’t.
+          </p>
+        </FaqItem>
+        <FaqItem question="What if I only need part of it?">
+          <p>
+            Then you don’t need The Standard, and I’ll be the first to say
+            so. Nearly every step exists as its own service, from focused
+            closet edits to occasion styling to ongoing support. <a
+              href="/services">Browse all services</a> and start with the
+            piece your life actually needs.
+          </p>
+        </FaqItem>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Begin with the conversation"
+    lede="The Standard starts the way everything here does: a complimentary, no-pressure 30-minute style conversation. If it’s right for you, you’ll know. If a smaller service fits better, I’ll tell you that too."
+    secondaryLabel="Explore All Services"
+    secondaryHref="/services"
+  />
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding-block: clamp(3rem, 2rem + 4vw, 6.5rem);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: center;
+  }
+
+  .hero-copy h1 {
+    margin-bottom: 0.5em;
+  }
+
+  .hero-copy h1 em {
+    color: var(--gold);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 2rem 0 2.2rem;
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: start;
+    gap: clamp(1.5rem, 1rem + 2vw, 3.2rem);
+    margin: 0 0 1.3rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--gold-hairline);
+  }
+
+  .hero-meta dt {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 0.25rem;
+  }
+
+  .hero-meta dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--espresso);
+  }
+
+  .hero-note {
+    font-size: 0.85rem;
+    color: var(--umber);
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .hero-media {
+    position: relative;
+    max-width: 28rem;
+    justify-self: end;
+    width: 100%;
+  }
+
+  .hero-photo > div {
+    aspect-ratio: 4 / 5;
+  }
+
+  .hero-photo {
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* Who it's for */
+  .who-eyebrow {
+    display: flex;
+    margin-bottom: 2.4rem;
+  }
+
+  .who-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+    list-style: none;
+    margin: 0 0 2.4rem;
+    padding: 0;
+  }
+
+  .who-list li {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.35;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--gold-hairline);
+    color: var(--espresso);
+  }
+
+  .who-outro {
+    text-align: center;
+    margin: 0;
+    color: var(--umber);
+  }
+
+  /* Method */
+  .method {
+    scroll-margin-top: 5.5rem;
+  }
+
+  .method-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .method-step {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: clamp(1.4rem, 1rem + 1.5vw, 2.2rem);
+    position: relative;
+    padding-bottom: clamp(2.2rem, 1.8rem + 1.5vw, 3.2rem);
+  }
+
+  .method-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .method-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Connecting hairline between the numbered medallions. */
+  .method-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 5rem;
+    bottom: 0.4rem;
+    left: 2.25rem;
+    width: 1px;
+    background: var(--gold-hairline);
+  }
+
+  .method-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    flex-shrink: 0;
+    border: 1px solid var(--gold-hairline);
+    border-radius: 50%;
+    background: var(--card);
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    color: var(--gold);
+    box-shadow: var(--shadow-card);
+  }
+
+  .method-body {
+    padding-top: 0.4rem;
+  }
+
+  .method-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .method-step h3 {
+    font-size: 1.7rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .method-outcome {
+    color: var(--sage);
+    font-size: 1.12rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .method-detail {
+    font-size: 0.98rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 52ch;
+  }
+
+  .method-outro {
+    margin: clamp(2.5rem, 2rem + 2vw, 4rem) 0 0;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.35rem;
+    color: var(--espresso);
+    text-wrap: balance;
+  }
+
+  /* What you keep */
+  .keep-grid {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: clamp(2.5rem, 2rem + 3vw, 5rem);
+    align-items: start;
+  }
+
+  .keep-media {
+    position: sticky;
+    top: 7rem;
+  }
+
+  .keep-photo {
+    max-width: 24rem;
+  }
+
+  .keep-photo > div {
+    aspect-ratio: 516 / 622;
+  }
+
+  .keep-copy :global(.section-intro) {
+    margin-bottom: 1.6rem;
+  }
+
+  .keep-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .keep-item {
+    padding: 1.3rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .keep-item h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .keep-item h3::before {
+    content: '◆';
+    font-size: 0.5rem;
+    color: var(--gold);
+    vertical-align: 0.35em;
+    margin-right: 0.7rem;
+  }
+
+  .keep-item p {
+    font-size: 0.95rem;
+    color: var(--umber);
+    margin: 0;
+    max-width: 52ch;
+  }
+
+  /* Investment */
+  .investment-card {
+    padding: clamp(2rem, 1.5rem + 2vw, 3.2rem);
+    text-align: center;
+    border-color: var(--gold-hairline);
+  }
+
+  .investment-price {
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.8rem);
+    color: var(--espresso);
+    margin: 0 0 1.4rem;
+    line-height: 1.15;
+  }
+
+  /* Hairline, gold diamond, hairline, centered inside the card. */
+  .investment-divider {
+    max-width: 16rem;
+    margin: 0 auto 1.6rem;
+    font-size: 0.55rem;
+    line-height: 1;
+  }
+
+  .investment-divider::before,
+  .investment-divider::after {
+    background: var(--gold-hairline);
+  }
+
+  .investment-body {
+    max-width: 46ch;
+    margin: 0 auto 1.6rem;
+    color: var(--umber);
+  }
+
+  .investment-points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+    justify-items: center;
+  }
+
+  .investment-points li {
+    font-size: 0.9rem;
+    color: var(--espresso);
+    letter-spacing: 0.01em;
+  }
+
+  .investment-points li::before {
+    content: '◆';
+    font-size: 0.45rem;
+    color: var(--gold);
+    vertical-align: 0.4em;
+    margin-right: 0.6rem;
+  }
+
+  .investment-note {
+    text-align: center;
+    font-size: 0.92rem;
+    color: var(--umber);
+    max-width: 52ch;
+    margin: 2.2rem auto 0;
+  }
+
+  .investment-note .text-link {
+    margin-top: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .keep-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .keep-media {
+      position: static;
+    }
+
+    .keep-photo {
+      margin-inline: auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-media {
+      justify-self: center;
+      max-width: 24rem;
+    }
+
+    .who-list {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-meta {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .method-step {
+      grid-template-columns: 3.2rem 1fr;
+    }
+
+    .method-num {
+      width: 3.2rem;
+      height: 3.2rem;
+      font-size: 1.15rem;
+    }
+
+    .method-step:not(:last-child)::after {
+      top: 3.7rem;
+      left: 1.6rem;
+    }
+  }
+</style>
