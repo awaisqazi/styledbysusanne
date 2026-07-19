@@ -25,7 +25,7 @@ const schema = {
   description: SITE.description,
   url: SITE.domain,
   email: SITE.email,
-  telephone: SITE.phone,
+  telephone: SITE.phoneIntl,
   image: new URL('/og-default.jpg', SITE.domain).toString(),
   address: {
     '@type': 'PostalAddress',
@@ -83,11 +83,11 @@ const schema = {
     <div class="container">
       <ul class="problems-list" role="list">
         <li>“My closet is full, but nothing feels right.”</li>
-        <li>“My style hasn't caught up with my life.”</li>
+        <li>“My style hasn’t caught up with my life.”</li>
         <li>“I need polished outfits without spending hours on them.”</li>
       </ul>
       <p class="problems-outro">
-        If any of those sound familiar, you're exactly who I work with.
+        If any of those sound familiar, you’re exactly who I work with.
         <a class="text-link" href="#paths">Choose your path</a>
       </p>
     </div>
@@ -148,7 +148,7 @@ const schema = {
   <section class="section outcomes">
     <div class="container">
       <SectionIntro
-        eyebrow="What clients walk away with"
+        eyebrow="Where the full method takes you"
         title="Not just outfits, a system"
         center
       />
@@ -157,14 +157,15 @@ const schema = {
           <p class="outcome-title">A closet where everything belongs</p>
           <p>
             Every piece fits your body, your calendar, and who you are now.
-            The rest leaves with me, donation run included.
+            In the flagship, the rest leaves with me, donation run included.
           </p>
         </div>
         <div class="outcome card">
           <p class="outcome-title">Outfits, photographed and ready</p>
           <p>
-            Complete looks built from your own wardrobe, captured in a
-            digital style library you can open every morning.
+            Complete looks built from your own wardrobe. Flagship clients
+            get them captured in a digital style library you can open every
+            morning.
           </p>
         </div>
         <div class="outcome card">
@@ -176,8 +177,8 @@ const schema = {
         </div>
       </div>
       <p class="outcomes-note">
-        First client stories are being gathered now from pilot engagements; <a
-          href="/client-stories">read how they'll be told</a>.
+        First client stories are on their way; <a
+          href="/client-stories">read how they’ll be told</a>.
       </p>
     </div>
   </section>
@@ -241,14 +242,14 @@ const schema = {
       <div class="meet-copy">
         <SectionIntro
           eyebrow="Meet Susanne"
-          title="Clothing is a person's first language"
+          title="Clothing is a person’s first language"
           lede="What you wear communicates authority, clarity, confidence, and intent long before you speak. My work is aligning that message with who you actually are."
         />
         <p>
-          I believe great style should feel effortless, personal, and bring
+          I believe great style should feel effortless and personal, and bring
           out your most confident self. My approach is thoughtful and
           collaborative, focused on ease, intention, and helping you feel
-          polished without ever feeling overdone. (And yes, we'll have fun
+          polished without ever feeling overdone. (And yes, we’ll have fun
           doing it. Closets are my happy place.)
         </p>
         <p class="script meet-signature" aria-hidden="true">Xo, Sus</p>
@@ -283,7 +284,7 @@ const schema = {
   </section>
 
   <CtaBand
-    title="Let's make getting dressed the easiest part of your day"
+    title="Let’s make getting dressed the easiest part of your day"
     secondaryLabel="Explore Services"
     secondaryHref="/services"
   />
@@ -511,7 +512,7 @@ const schema = {
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-deep);
     margin-bottom: 0.4rem;
   }
 

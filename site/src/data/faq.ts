@@ -39,12 +39,12 @@ export const FAQS: Faq[] = [
   {
     question: 'Do I have to buy new clothes?',
     answer:
-      '<p>Not unless something is genuinely missing. When there are gaps, you get a color-coded curated list of strategic must-haves and elevated wants; you choose what to invest in, on your timeline. I never earn from pushing you to buy more.</p>',
+      '<p>Not unless something is genuinely missing. When there are gaps, you get a color-coded curated list of strategic must-haves and elevated wants; you choose what to invest in, on your timeline. My fee never depends on how much you spend, and any commissionable links are always disclosed.</p>',
   },
   {
     question: 'How does pricing work?',
     answer:
-      '<p>Published ranges cover the typical scope of each service; your exact quote is confirmed after the style conversation, before anything is booked. Travel within Chicago is included; further afield we’ll agree on travel terms up front.</p>',
+      '<p>Published ranges cover the typical scope of each service; your exact quote is confirmed after the style conversation, before anything is booked. Travel terms for your location are part of that same conversation, agreed up front before anything is booked.</p>',
   },
   {
     question: 'What sizes and styles do you work with?',

@@ -42,8 +42,9 @@ const { question, open = false } = Astro.props;
     display: none;
   }
 
-  summary:hover {
-    color: var(--gold);
+  summary:hover .faq-marker::before,
+  summary:hover .faq-marker::after {
+    transform: scale(1.35);
   }
 
   .faq-question {

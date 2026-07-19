@@ -34,7 +34,7 @@ const isActive = (href: string) =>
             <li>
               <a
                 href={item.href}
-                aria-current={isActive(item.href) ? 'page' : undefined}
+                aria-current={currentPath === item.href ? 'page' : isActive(item.href) ? 'true' : undefined}
               >
                 {item.label}
               </a>
@@ -92,7 +92,7 @@ const isActive = (href: string) =>
 
   .wordmark-by {
     font-weight: 400;
-    color: var(--gold);
+    color: var(--gold-deep);
     margin-inline: 0.1em;
   }
 
@@ -128,7 +128,7 @@ const isActive = (href: string) =>
     border-color: var(--gold-hairline);
   }
 
-  .site-nav ul a[aria-current='page'] {
+  .site-nav ul a[aria-current] {
     color: var(--espresso);
     border-color: var(--gold);
   }
@@ -168,7 +168,7 @@ const isActive = (href: string) =>
     transform: translateY(-3.75px) rotate(-45deg);
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1080px) {
     .nav-toggle {
       display: flex;
     }

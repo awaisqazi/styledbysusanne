@@ -235,10 +235,6 @@ export const STANDARD_STEPS: StandardStep[] = [
   },
 ];
 
-export function getFamily(slug: string): ServiceFamily | undefined {
-  return FAMILIES.find((f) => f.slug === slug);
-}
-
 export function getAllServices(): Service[] {
   return FAMILIES.flatMap((f) => f.services);
 }

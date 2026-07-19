@@ -26,7 +26,7 @@ const steps = [
 
 <Base
   title="Book a Style Conversation"
-  description="Start with a complimentary, 30-minute style conversation, no prep needed. Fill out the short questionnaire and get an exact quote for Chicago or virtual styling."
+  description="Start with a complimentary, 30-minute style conversation, no prep needed. Fill out the questionnaire and get an exact quote for Chicago or virtual styling."
 >
   <!-- ============================================================ Hero -->
   <section class="book-hero">
@@ -74,7 +74,7 @@ const steps = [
         target="_blank"
         rel="noopener"
       >
-        Open the Style Questionnaire
+        Open the Style Questionnaire<span class="visually-hidden"> (opens in a new tab)</span>
       </a>
       <p class="cta-alt">
         Prefer people over forms? Same, honestly. <a
@@ -91,14 +91,13 @@ const steps = [
   <section class="section section--ivory questionnaire" id="questionnaire">
     <div class="container container--narrow">
       <p class="questionnaire-note">
-        The same questionnaire, right here, or use the button above to open it
+        The same questionnaire, right here. Or use the button above to open it
         in a new tab. Either way it lands with me.
       </p>
       <div class="card questionnaire-card">
         <iframe
           src={embeddedFormUrl}
           title="Style questionnaire"
-          width="100%"
           height="1400"
           loading="lazy"
         ></iframe>
@@ -113,7 +112,7 @@ const steps = [
         <li>Complimentary</li>
         <li>No obligation</li>
         <li>Chicago + virtual</li>
-        <li>Replies within 1–2 business days</li>
+        <li>Personal reply from Susanne</li>
       </ul>
     </div>
   </section>
@@ -156,7 +155,7 @@ const steps = [
   .step-num {
     font-family: var(--font-serif);
     font-size: 1.15rem;
-    color: var(--gold);
+    color: var(--gold-deep);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -271,6 +270,20 @@ const steps = [
   }
 
   /* Responsive */
+  @media (max-width: 1080px) {
+    .reassurance-list {
+      flex-direction: column;
+      align-items: center;
+      row-gap: 0.5rem;
+      text-align: center;
+    }
+
+    .reassurance-list li + li::before {
+      content: none;
+      margin-inline: 0;
+    }
+  }
+
   @media (max-width: 900px) {
     .steps-grid {
       grid-template-columns: 1fr;

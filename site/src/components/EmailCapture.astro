@@ -132,6 +132,18 @@ const {
     gap: 0.9rem;
   }
 
+  @media (max-width: 420px) {
+    .email-fallback-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .email-fallback-actions .btn {
+      padding-inline: 1rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
   @media (max-width: 800px) {
     .email-capture-panel {
       grid-template-columns: 1fr;

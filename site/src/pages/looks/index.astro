@@ -68,6 +68,8 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
         }
       </div>
 
+      <p class="visually-hidden" role="status" data-filter-status></p>
+
       <ul class="looks-grid" role="list">
         {
           looks.map((look, i) => (
@@ -120,6 +122,7 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
     const items = Array.from(
       document.querySelectorAll<HTMLLIElement>('li[data-look-category]'),
     );
+    const status = document.querySelector<HTMLParagraphElement>('[data-filter-status]');
 
     for (const chip of chips) {
       chip.addEventListener('click', () => {
@@ -127,8 +130,17 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
         for (const c of chips) {
           c.setAttribute('aria-pressed', String(c === chip));
         }
+        let visible = 0;
         for (const item of items) {
           item.hidden = filter !== 'all' && item.dataset.lookCategory !== filter;
+          if (!item.hidden) visible += 1;
+        }
+        if (status) {
+          const label = chip.textContent?.trim() ?? '';
+          status.textContent =
+            filter === 'all'
+              ? `Showing all ${visible} looks`
+              : `Showing ${visible} ${label} ${visible === 1 ? 'look' : 'looks'}`;
         }
       });
     }
@@ -172,6 +184,10 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
     flex-wrap: wrap;
     gap: 0.7rem;
     margin-bottom: 2.4rem;
+  }
+
+  .filter-chips[hidden] {
+    display: none;
   }
 
   .filter-chip {

@@ -26,6 +26,7 @@
   --sage-deep: #3f4a38;
   --sage-soft: #e9ece1;
   --gold: #a1854c;
+  --gold-deep: #7d6636; /* AA on paper 5.10:1, ivory 4.71:1, card 5.40:1 */
   --gold-hairline: #d8c69f;
   --line: rgba(54, 44, 36, 0.14);
   --line-soft: rgba(54, 44, 36, 0.08);
@@ -162,6 +163,11 @@ a:hover {
   border-radius: 2px;
 }
 
+.section--espresso :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--gold-hairline);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -187,6 +193,11 @@ a:hover {
 
 .section {
   padding-block: var(--section-pad);
+}
+
+/* Keep in-page anchor targets clear of the sticky header after a jump. */
+[id] {
+  scroll-margin-top: 5.5rem;
 }
 
 .section--ivory {
@@ -346,12 +357,12 @@ a:hover {
 }
 
 .btn--gold {
-  background: var(--gold);
+  background: var(--gold-deep);
   color: #fffdf9;
 }
 
 .btn--gold:hover {
-  background: #8d743f;
+  background: #6b5730;
   box-shadow: var(--shadow-lift);
   transform: translateY(-1px);
 }
@@ -474,4 +485,33 @@ a:hover {
   font-style: italic;
   font-size: 1.25em;
   color: var(--umber);
+}
+
+/* ------------------------------------------------------------------ print */
+@media print {
+  .announcement,
+  .skip-link,
+  .nav-toggle {
+    display: none !important;
+  }
+
+  .section--espresso,
+  .site-footer {
+    background: none !important;
+  }
+
+  .section--espresso,
+  .section--espresso *,
+  .site-footer,
+  .site-footer * {
+    color: var(--espresso) !important;
+    border-color: var(--line) !important;
+  }
+
+  .btn--primary,
+  .btn--gold {
+    background: none !important;
+    color: var(--espresso) !important;
+    border: 1px solid var(--espresso) !important;
+  }
 }

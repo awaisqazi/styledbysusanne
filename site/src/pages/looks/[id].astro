@@ -16,6 +16,8 @@ export async function getStaticPaths() {
       entry,
       newer: looks[(i - 1 + looks.length) % looks.length],
       older: looks[(i + 1) % looks.length],
+      newerWraps: i === 0,
+      olderWraps: i === looks.length - 1,
     },
   }));
 }
@@ -24,9 +26,11 @@ interface Props {
   entry: CollectionEntry<'looks'>;
   newer: CollectionEntry<'looks'>;
   older: CollectionEntry<'looks'>;
+  newerWraps: boolean;
+  olderWraps: boolean;
 }
 
-const { entry, newer, older } = Astro.props;
+const { entry, newer, older, newerWraps, olderWraps } = Astro.props;
 const { Content } = await render(entry);
 
 const { title, date, category, image, imageAlt, teaser, whyItWorks, pieces, similar, service } =
@@ -42,7 +46,7 @@ const dateLabel = date.toLocaleDateString('en-US', {
 /** Hide prev/next when there is only one published look. */
 const hasNav = newer.id !== entry.id;
 
-const description = `${teaser} Shop the exact pieces, similar finds at other price points, and the one styling principle that makes it work.`;
+const description = `${teaser} Shop the exact pieces and similar finds at every price point.`;
 ---
 
 <Base title={title} description={description} ogImage={image.src}>
@@ -180,7 +184,7 @@ const description = `${teaser} Shop the exact pieces, similar finds at other pri
                 />
               </div>
               <div>
-                <p class="look-nav-dir">← Newer look</p>
+                <p class="look-nav-dir">{newerWraps ? '← Back to the oldest look' : '← Newer look'}</p>
                 <p class="look-nav-title">{newer.data.title}</p>
               </div>
             </a>
@@ -195,7 +199,7 @@ const description = `${teaser} Shop the exact pieces, similar finds at other pri
                 />
               </div>
               <div>
-                <p class="look-nav-dir">Older look →</p>
+                <p class="look-nav-dir">{olderWraps ? 'Back to the newest look →' : 'Older look →'}</p>
                 <p class="look-nav-title">{older.data.title}</p>
               </div>
             </a>
@@ -240,6 +244,12 @@ const description = `${teaser} Shop the exact pieces, similar finds at other pri
     box-shadow: var(--shadow-lift);
   }
 
+  @media (min-width: 941px) {
+    .look-photo {
+      max-height: calc(100dvh - 8.5rem);
+    }
+  }
+
   /* Header */
   .look-header {
     padding-bottom: 1.6rem;
@@ -268,7 +278,7 @@ const description = `${teaser} Shop the exact pieces, similar finds at other pri
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-deep);
     margin-bottom: 0.4rem;
   }
 
@@ -366,7 +376,7 @@ const description = `${teaser} Shop the exact pieces, similar finds at other pri
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-deep);
     margin-bottom: 0.5rem;
   }
 
