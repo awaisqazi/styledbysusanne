@@ -20,8 +20,12 @@
   --card: #fffdf9;
   --espresso: #362c24;
   --umber: #675a4e;
-  --blush: #c9958a;
-  --blush-soft: #f4e6e0;
+  --blush: #dda3b0;
+  --blush-soft: #f8e7eb;
+  --rose: #a34e60; /* AA small text on paper 5.11, ivory 4.72, card 5.42; cream text on it 5.42 */
+  --rose-deep: #8a3e50;
+  --rose-soft: #f7e4e7;
+  --rose-tint: #fbf1f4;
   --sage: #5f6d55;
   --sage-deep: #3f4a38;
   --sage-soft: #e9ece1;
@@ -92,10 +96,16 @@ body::before {
 }
 
 main,
-header,
-footer {
+header {
   position: relative;
   z-index: 1;
+}
+
+/* Below main so fixed elements inside main (sticky mobile CTA bars)
+   stay visible while scrolling past the footer. */
+footer {
+  position: relative;
+  z-index: 0;
 }
 
 img,
@@ -217,7 +227,7 @@ a:hover {
   font-weight: 560;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--sage);
+  color: var(--rose);
   margin: 0 0 1.1rem;
 }
 
@@ -367,6 +377,18 @@ a:hover {
   transform: translateY(-1px);
 }
 
+/* Rose: the conversion accent. Cream text passes AA on both states. */
+.btn--rose {
+  background: var(--rose);
+  color: #fffdf9;
+}
+
+.btn--rose:hover {
+  background: var(--rose-deep);
+  box-shadow: 0 2px 4px rgba(138, 62, 80, 0.15), 0 18px 40px -16px rgba(138, 62, 80, 0.45);
+  transform: translateY(-1px);
+}
+
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -513,5 +535,104 @@ a:hover {
     background: none !important;
     color: var(--espresso) !important;
     border: 1px solid var(--espresso) !important;
+  }
+}
+
+/* ------------------------------------------------------- motion & decor */
+/* Scroll-reveal: elements get .reveal from the Base observer script only
+   when JS is running, so no-JS visitors always see full content. */
+html.js .reveal {
+  opacity: 0;
+  translate: 0 26px;
+}
+
+html.js .reveal.is-visible {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.75s cubic-bezier(0.2, 0.6, 0.2, 1),
+    translate 0.75s cubic-bezier(0.2, 0.6, 0.2, 1);
+  transition-delay: calc(var(--reveal-delay, 0) * 90ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}
+
+/* Soft blush wash for hero/backdrop sections. */
+.bg-blush-wash {
+  background:
+    radial-gradient(52rem 34rem at 88% -12%, rgba(221, 163, 176, 0.22), transparent 62%),
+    radial-gradient(40rem 30rem at -14% 34%, rgba(216, 198, 159, 0.16), transparent 60%),
+    var(--paper);
+}
+
+/* Four-point sparkle accents (used via the Sparkle component). */
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  color: var(--blush);
+  animation: sparkle-twinkle 4.2s ease-in-out infinite;
+  animation-delay: var(--sparkle-delay, 0s);
+}
+
+.sparkle--gold {
+  color: var(--gold-hairline);
+}
+
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    scale: 0.82;
+    rotate: 0deg;
+  }
+  50% {
+    opacity: 0.95;
+    scale: 1;
+    rotate: 12deg;
+  }
+}
+
+/* Slow float for framed photos and ornaments. */
+@keyframes floaty {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -9px;
+  }
+}
+
+.floaty {
+  animation: floaty 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle,
+  .floaty {
+    animation: none;
+  }
+}
+
+/* Script signature wipe-in (pairs with .reveal on a script element). */
+html.js .signature-reveal {
+  clip-path: inset(0 100% 0 0);
+}
+
+html.js .signature-reveal.is-visible {
+  clip-path: inset(0 -12% 0 0);
+  transition: clip-path 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .signature-reveal {
+    clip-path: none;
+    transition: none;
   }
 }

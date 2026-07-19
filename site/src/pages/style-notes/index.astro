@@ -36,7 +36,7 @@ const formatDate = (date: Date): string =>
       <div class="notes-list">
         {
           notes.map((note) => (
-            <article class="note-row">
+            <article class="note-row" data-reveal>
               <p class="note-date">{formatDate(note.data.date)}</p>
               <div class="note-body">
                 <h2 class="note-title">
@@ -79,7 +79,7 @@ const formatDate = (date: Date): string =>
   }
 
   .notes-header h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .notes-header .lede {
@@ -99,7 +99,7 @@ const formatDate = (date: Date): string =>
     font-weight: 550;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--umber);
+    color: var(--rose);
     margin: 0.45rem 0 0;
   }
 
@@ -108,13 +108,23 @@ const formatDate = (date: Date): string =>
     margin-bottom: 0.35em;
   }
 
+  /* Serif titles get an animated blush underline that draws in on hover. */
   .note-title a {
     text-decoration: none;
-    transition: color var(--transition);
+    background-image: linear-gradient(var(--blush), var(--blush));
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    background-position: 0 94%;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: color var(--transition), background-size 0.4s cubic-bezier(0.3, 0.6, 0.3, 1);
   }
 
-  .note-title a:hover {
-    color: var(--gold);
+  .note-title a:hover,
+  .note-title a:focus-visible,
+  .note-row:hover .note-title a {
+    color: var(--rose-deep);
+    background-size: 100% 2px;
   }
 
   .note-desc {

@@ -1,19 +1,21 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Sparkle from '../components/Sparkle.astro';
 import { SITE } from '../lib/site';
-import { getPublishedLooks } from '../lib/looks';
+import { getPublishedLooks, LOOK_CATEGORIES } from '../lib/looks';
 
 import avatarPhoto from '../assets/photos/flatlay-neutrals.jpg';
 
 /** UTM tracking for everything leaving the bio hub. */
 const UTM = 'utm_source=instagram&utm_medium=bio&utm_campaign=links';
 
-const primaryLinks = [
-  { label: 'Book a Style Conversation', href: `/book?${UTM}`, variant: 'btn--primary' },
-  { label: 'Shop My Latest Looks', href: `/looks?${UTM}`, variant: 'btn--outline' },
-  { label: 'Explore Styling Services', href: `/services?${UTM}`, variant: 'btn--outline' },
-  { label: 'Get the Free Closet Reset', href: `/?${UTM}#closet-reset`, variant: 'btn--outline' },
+const bookLink = { label: 'Book a Style Conversation', href: `/book?${UTM}` };
+
+const secondaryLinks = [
+  { label: 'Shop My Latest Looks', href: `/looks?${UTM}` },
+  { label: 'Explore Styling Services', href: `/services?${UTM}` },
+  { label: 'Get the Free Closet Reset', href: `/?${UTM}#closet-reset` },
 ] as const;
 
 const latestLooks = (await getPublishedLooks()).slice(0, 3);
@@ -24,77 +26,110 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
   description="Susanne's link hub: book a complimentary style conversation, shop the latest looks, explore Chicago + virtual styling services, and grab the free Closet Reset."
   bare={true}
 >
-  <div class="links-page">
-    <!-- ------------------------------------------------------- Identity -->
-    <header class="links-header">
-      <div class="links-avatar">
-        <Image
-          src={avatarPhoto}
-          alt="Flatlay of neutral wardrobe pieces styled by Susanne."
-          widths={[96, 192]}
-          sizes="5.5rem"
-          loading="eager"
-        />
-      </div>
-      <h1 class="links-wordmark">
-        Styled <span class="serif-italic links-by">by</span> Susanne
-      </h1>
-      <p class="links-bio">Personal styling · Chicago + virtual</p>
-      <a class="links-handle" href={SITE.instagram} rel="noopener">
-        {SITE.instagramHandle}
-      </a>
-    </header>
-
-    <!-- -------------------------------------------------- Primary links -->
-    <nav class="links-buttons" aria-label="Primary links">
-      {
-        primaryLinks.map((link) => (
-          <a class:list={['btn', link.variant]} href={link.href}>
-            {link.label}
-          </a>
-        ))
-      }
-    </nav>
-
-    <!-- --------------------------------------------------- Latest looks -->
-    {
-      latestLooks.length > 0 && (
-        <section class="links-looks" aria-label="Latest looks">
-          <h2 class="links-looks-title">Latest looks</h2>
-          <div class="links-looks-grid">
-            {latestLooks.map((look) => (
-              <a class="links-look" href={`/looks/${look.id}?${UTM}`}>
-                <div class="links-look-media">
-                  <Image
-                    src={look.data.image}
-                    alt={look.data.imageAlt}
-                    widths={[160, 320]}
-                    sizes="(max-width: 480px) 28vw, 7.5rem"
-                    loading="lazy"
-                  />
-                </div>
-                <span class="links-look-label">{look.data.title}</span>
-              </a>
-            ))}
+  <div class="links-shell bg-blush-wash">
+    <div class="links-page">
+      <!-- ----------------------------------------------------- Identity -->
+      <header class="links-header">
+        <div class="links-avatar-wrap">
+          <div class="links-avatar-ring" aria-hidden="true"></div>
+          <Sparkle size={13} top="-9px" right="-7px" delay={0.7} />
+          <Sparkle size={9} bottom="-1px" left="-13px" gold delay={2.1} />
+          <div class="links-avatar">
+            <Image
+              src={avatarPhoto}
+              alt="Flatlay of neutral wardrobe pieces styled by Susanne."
+              widths={[96, 192]}
+              sizes="5.5rem"
+              loading="eager"
+            />
           </div>
-          <p class="links-disclosure">
-            Look pages may contain affiliate links: <a
-              href="/policies/affiliate-disclosure">how that works</a>.
-          </p>
-        </section>
-      )
-    }
+        </div>
+        <h1 class="links-wordmark">
+          Styled <span class="serif-italic links-by">by</span> Susanne
+        </h1>
+        <p class="links-bio">Personal styling · Chicago + virtual</p>
+        <a class="links-handle" href={SITE.instagram} rel="noopener">
+          {SITE.instagramHandle}
+        </a>
+      </header>
 
-    <!-- --------------------------------------------------------- Footer -->
-    <footer class="links-footer">
-      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-      <span aria-hidden="true">·</span>
-      <a href="/">styledbysusanne.com</a>
-    </footer>
+      <!-- ------------------------------------------------ Primary links -->
+      <nav class="links-buttons" aria-label="Primary links">
+        <a class="btn btn--rose" href={bookLink.href}>{bookLink.label}</a>
+        {
+          secondaryLinks.map((link) => (
+            <a class="links-card" href={link.href}>
+              <span class="links-card-label">{link.label}</span>
+              <svg
+                class="links-card-chevron"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 3.5 10.5 8 6 12.5" />
+              </svg>
+            </a>
+          ))
+        }
+      </nav>
+
+      <!-- ------------------------------------------------- Latest looks -->
+      {
+        latestLooks.length > 0 && (
+          <section class="links-looks" aria-label="Latest looks">
+            <h2 class="links-looks-title">Latest looks</h2>
+            <div class="links-looks-grid">
+              {latestLooks.map((look) => (
+                <a class="links-look" href={`/looks/${look.id}?${UTM}`}>
+                  <div class="links-look-media">
+                    <Image
+                      src={look.data.image}
+                      alt={look.data.imageAlt}
+                      widths={[240, 480, 640]}
+                      sizes="(max-width: 559px) 78vw, 7.5rem"
+                      loading="lazy"
+                    />
+                    <span class="links-look-cat">
+                      {LOOK_CATEGORIES[look.data.category]}
+                    </span>
+                  </div>
+                  <span class="links-look-label">{look.data.title}</span>
+                </a>
+              ))}
+            </div>
+            <p class="links-disclosure">
+              Look pages may contain affiliate links: <a
+                href="/policies/affiliate-disclosure">how that works</a>.
+            </p>
+          </section>
+        )
+      }
+
+      <!-- ------------------------------------------------------- Footer -->
+      <footer class="links-footer">
+        <p class="script links-signoff signature-reveal" aria-hidden="true">
+          Xo, Sus
+        </p>
+        <p class="links-footer-line">
+          <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          <span aria-hidden="true">·</span>
+          <a href="/">styledbysusanne.com</a>
+        </p>
+      </footer>
+    </div>
   </div>
 </Base>
 
 <style>
+  .links-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
   .links-page {
     width: min(100% - 2.5rem, 26rem);
     margin-inline: auto;
@@ -106,13 +141,28 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
   }
 
   /* Identity */
+  .links-avatar-wrap {
+    position: relative;
+    width: 5.5rem;
+    margin: 0 auto 1.1rem;
+  }
+
+  /* Offset blush circle, echoing the arched-mirror outline on the homepage. */
+  .links-avatar-ring {
+    position: absolute;
+    inset: -0.45rem 0.45rem 0.45rem -0.45rem;
+    border: 1px solid var(--blush);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
   .links-avatar {
     width: 5.5rem;
     height: 5.5rem;
-    margin: 0 auto 1.1rem;
     padding: 0.3rem;
     border: 1px solid var(--gold-hairline);
     border-radius: 50%;
+    background: var(--card);
   }
 
   .links-avatar :global(img) {
@@ -131,7 +181,7 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
   }
 
   .links-by {
-    color: var(--gold);
+    color: var(--rose);
     font-weight: 400;
   }
 
@@ -143,17 +193,18 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
   }
 
   .links-handle {
+    display: inline-block;
     font-size: 0.82rem;
     font-weight: 550;
     letter-spacing: 0.1em;
     text-decoration: none;
-    color: var(--sage);
-    border-bottom: 1px solid var(--gold-hairline);
-    padding-bottom: 0.15rem;
+    color: var(--rose);
+    border-bottom: 1px solid var(--blush);
+    padding: 0.5rem 0.3rem 0.15rem;
   }
 
   .links-handle:hover {
-    border-color: var(--gold);
+    border-color: var(--rose);
   }
 
   /* Primary links */
@@ -164,7 +215,64 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
 
   .links-buttons .btn {
     width: 100%;
+    min-height: 3.4rem;
     padding: 1.05rem 1.5rem;
+  }
+
+  .links-buttons .btn:active {
+    transform: scale(0.985);
+  }
+
+  /* Soft card links: whole surface tappable, 54px+ tall. */
+  .links-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.4rem;
+    padding: 0.85rem 2.6rem;
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    text-decoration: none;
+    transition: border-color var(--transition), box-shadow var(--transition),
+      transform var(--transition);
+  }
+
+  .links-card-label {
+    font-size: 0.92rem;
+    font-weight: 550;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    color: var(--rose);
+  }
+
+  .links-card-chevron {
+    position: absolute;
+    right: 1.05rem;
+    top: 50%;
+    translate: 0 -50%;
+    width: 15px;
+    height: 15px;
+    color: var(--blush);
+    transition: translate var(--transition);
+  }
+
+  .links-card:hover {
+    border-color: var(--blush);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-1px);
+  }
+
+  .links-card:hover .links-card-chevron {
+    translate: 3px -50%;
+  }
+
+  .links-card:active {
+    transform: scale(0.985);
+    box-shadow: var(--shadow-card);
   }
 
   /* Latest looks */
@@ -174,7 +282,7 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
     font-weight: 560;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -189,18 +297,32 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
     background: var(--line);
   }
 
+  /* Mobile-first: swipeable scroll-snap carousel, no visible scrollbar. */
   .links-looks-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.7rem;
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: -1.25rem;
+    padding: 0.25rem 1.25rem 0.6rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .links-looks-grid::-webkit-scrollbar {
+    display: none;
   }
 
   .links-look {
     display: block;
+    flex: 0 0 78vw;
+    max-width: 20rem;
+    scroll-snap-align: center;
     text-decoration: none;
   }
 
   .links-look-media {
+    position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
     border-radius: var(--radius);
@@ -221,12 +343,57 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
     object-fit: cover;
   }
 
+  .links-look-cat {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    max-width: calc(100% - 1.1rem);
+    display: inline-block;
+    padding: 0.24rem 0.62rem;
+    border-radius: 999px;
+    background: var(--rose-soft);
+    color: var(--rose-deep);
+    font-size: 0.62rem;
+    font-weight: 620;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .links-look-label {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.72rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    margin-top: 0.55rem;
+    font-size: 0.85rem;
     line-height: 1.4;
     color: var(--umber);
+  }
+
+  @media (min-width: 560px) {
+    .links-looks-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+      margin-inline: 0;
+      padding: 0;
+      overflow: visible;
+    }
+
+    .links-look {
+      flex: none;
+      max-width: none;
+    }
+
+    .links-look-label {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+    }
   }
 
   .links-disclosure {
@@ -237,14 +404,28 @@ const latestLooks = (await getPublishedLooks()).slice(0, 3);
 
   /* Footer */
   .links-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
     font-size: 0.8rem;
     color: var(--umber);
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .links-signoff {
+    font-size: 1.9rem;
+    color: var(--rose);
+    margin: 0;
+  }
+
+  .links-footer-line {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.6rem;
-    padding-top: 1.6rem;
-    border-top: 1px solid var(--line);
+    margin: 0;
   }
 
   .links-footer a {

@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Base from '../../layouts/Base.astro';
+import Sparkle from '../../components/Sparkle.astro';
 import SectionIntro from '../../components/SectionIntro.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { SITE } from '../../lib/site';
@@ -85,7 +86,7 @@ const schema = {
   <!-- ============================================================ Hero -->
   <section class="hero">
     <div class="container hero-grid">
-      <div class="hero-copy">
+      <div class="hero-copy" data-reveal>
         <nav class="eyebrow crumb" aria-label="Breadcrumb">
           <a href="/services">Work with Susanne</a>
           <span class="crumb-sep" aria-hidden="true">·</span>
@@ -103,7 +104,9 @@ const schema = {
         </p>
       </div>
       <div class="hero-media">
-        <div class="hero-arch-outline" aria-hidden="true"></div>
+        <Sparkle size={22} top="-2%" right="-5%" delay={0.6} />
+        <Sparkle size={14} bottom="9%" left="-7%" gold delay={2.1} />
+        <div class="hero-arch-outline floaty" aria-hidden="true"></div>
         <div class="arch-frame hero-photo">
           <Image
             src={photo.src}
@@ -162,7 +165,7 @@ const schema = {
                     <span class="svc-label">Best for</span>
                     {service.bestFor}
                   </p>
-                  <a class="btn btn--primary svc-cta" href="/book">
+                  <a class="btn btn--rose svc-cta" href="/book">
                     Start with a Conversation
                   </a>
                 </div>
@@ -178,16 +181,16 @@ const schema = {
   <section class="assure" aria-label="How booking works">
     <div class="container">
       <ul class="assure-list" role="list">
-        <li>
+        <li data-reveal>
           <strong>A conversation before anything else.</strong> Every
           engagement starts with a free 30-minute chat, and there is
           nothing to prepare.
         </li>
-        <li>
+        <li data-reveal>
           <strong>An exact quote before you book.</strong> Once I understand
           your closet and your scope, you'll know your fee to the dollar.
         </li>
-        <li>
+        <li data-reveal>
           <strong>Your clothing budget stays yours.</strong> My fee covers
           the styling; what you spend on pieces is separate, and always
           your call.
@@ -231,7 +234,26 @@ const schema = {
     secondaryLabel="Compare All Paths"
     secondaryHref="/services"
   />
+
+  <div class="mobile-cta" data-mobile-cta>
+    <a class="btn btn--rose" href="/book">Book a Free Conversation</a>
+  </div>
 </Base>
+
+<script>
+  // Sticky mobile CTA: slides in after ~55% of one viewport of scrolling.
+  const bar = document.querySelector<HTMLElement>('[data-mobile-cta]');
+  const mq = window.matchMedia('(max-width: 900px)');
+
+  if (bar) {
+    const onScroll = () => {
+      if (!mq.matches) return;
+      bar.classList.toggle('is-shown', window.scrollY > window.innerHeight * 0.55);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+</script>
 
 <style>
   /* Hero */
@@ -309,7 +331,7 @@ const schema = {
   .hero-arch-outline {
     position: absolute;
     inset: -1.1rem 1.4rem 1.1rem -1.4rem;
-    border: 1px solid var(--gold-hairline);
+    border: 1px solid var(--blush);
     border-radius: var(--radius-arch);
     z-index: -1;
   }
@@ -328,14 +350,14 @@ const schema = {
   }
 
   .svc--recommended {
-    border-color: var(--gold-hairline);
+    border-color: var(--blush);
   }
 
   .svc-badge {
     align-self: flex-start;
     font-size: 0.85rem;
-    color: var(--sage-deep);
-    background: var(--sage-soft);
+    color: var(--rose-deep);
+    background: var(--rose-soft);
     border-radius: var(--radius);
     padding: 0.5rem 0.9rem;
     margin: 0 0 1.3rem;
@@ -347,7 +369,7 @@ const schema = {
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
     margin-bottom: 0.1rem;
   }
 
@@ -363,7 +385,7 @@ const schema = {
 
   .svc-tagline {
     font-size: 1.12rem;
-    color: var(--sage);
+    color: var(--rose);
     margin: 0 0 1.1rem;
   }
 
@@ -550,6 +572,24 @@ const schema = {
     white-space: nowrap;
   }
 
+  /* Sticky mobile CTA bar */
+  .mobile-cta {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+    background: rgba(250, 246, 239, 0.94);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    display: none;
+  }
+
+  .mobile-cta .btn {
+    width: 100%;
+  }
+
   /* Responsive */
   @media (max-width: 900px) {
     .hero-grid {
@@ -577,6 +617,31 @@ const schema = {
     .others-grid {
       grid-template-columns: 1fr;
       max-width: 34rem;
+    }
+
+    .mobile-cta {
+      display: block;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.2, 0.6, 0.2, 1),
+        opacity 0.35s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .mobile-cta.is-shown {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Clear the fixed bar so it never covers the closing CTA band. */
+    :global(.cta-band) {
+      margin-bottom: 4.5rem;
+    }
+
+    /* The bar lives inside <main> (a z-index:1 stacking context); drop the
+       footer to 0 on this page so the bar paints above it while scrolling.
+       Visually identical otherwise: the footer never overlaps main in flow. */
+    :global(.site-footer) {
+      z-index: 0;
     }
   }
 </style>

@@ -69,6 +69,11 @@ const ogImageUrl = new URL(ogImage, Astro.site);
         />
       )
     }
+    <script is:inline>
+      // Motion styles are gated behind this class so no-JS visitors always
+      // see full content (see "motion & decor" in global.css).
+      document.documentElement.classList.add('js');
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -77,5 +82,52 @@ const ogImageUrl = new URL(ogImage, Astro.site);
       <slot />
     </main>
     {!bare && <Footer />}
+    <script>
+      // Scroll-reveal: soft rise-in for cards and section intros, staggered
+      // among siblings. Script signatures wipe in via .signature-reveal.
+      const AUTO =
+        '.section-intro, .card, .look-card, .family-card, .standard-step, .outcome, .faq-item, [data-reveal]';
+
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const signatures = [...document.querySelectorAll('.signature-reveal')];
+      const targets = [...document.querySelectorAll(AUTO)];
+
+      if (!reduced && 'IntersectionObserver' in window) {
+        const byParent = new Map<Element | null, number>();
+        for (const el of targets) {
+          const n = byParent.get(el.parentElement) ?? 0;
+          (el as HTMLElement).style.setProperty('--reveal-delay', String(Math.min(n, 5)));
+          byParent.set(el.parentElement, n + 1);
+          el.classList.add('reveal');
+        }
+        // Safety net: if an environment stalls transition timelines (some
+        // webviews and capture tools), hard-set the final state after the
+        // longest possible transition (750ms + 450ms stagger) has elapsed.
+        const finalize = (el: Element) => {
+          window.setTimeout(() => {
+            const s = (el as HTMLElement).style;
+            s.transition = 'none';
+            s.opacity = '1';
+            s.translate = 'none';
+            s.clipPath = 'none';
+          }, 1700);
+        };
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('is-visible');
+                finalize(e.target);
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+        );
+        for (const el of [...targets, ...signatures]) io.observe(el);
+      } else {
+        for (const el of [...targets, ...signatures]) el.classList.add('is-visible');
+      }
+    </script>
   </body>
 </html>

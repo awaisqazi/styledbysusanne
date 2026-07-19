@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import Sparkle from '../../components/Sparkle.astro';
 import SectionIntro from '../../components/SectionIntro.astro';
 import ServiceFamilyCard from '../../components/ServiceFamilyCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
@@ -49,6 +50,30 @@ const pricingPoints = [
       'Wherever your closet lives, we settle travel terms before you book: no surprise line items.',
   },
 ];
+
+/* "Find My Fit" quiz: every possible result is rendered server-side from the
+   service catalog; the page script only reveals the one that matches. */
+const quizWhys: Record<string, string> = {
+  'taste-test': 'Two closet areas, two hours, and the easiest first yes on the menu.',
+  'deep-detox': 'Every piece you own, considered with intention, so the whole closet finally makes sense.',
+  'seasonal-pivot': 'A twice-a-year refresh that keeps your closet current without another overhaul.',
+  'occasion-edit': 'Your moment styled head to toe, decided well before the date arrives.',
+  'suitcase-solo': 'Every travel day styled and photographed before you zip the bag.',
+  'digital-stylist': 'A stylist one text away, with looks and links sourced for your life and budget.',
+  'susanne-standard': 'The complete seven-step method, shaped entirely around you.',
+};
+
+const quizResults = FAMILIES.flatMap((family) =>
+  family.services.map((service) => ({
+    family,
+    service,
+    why: quizWhys[service.id] ?? service.tagline,
+    href:
+      service.id === 'susanne-standard'
+        ? '/services/the-susanne-standard'
+        : `/services/${family.slug}#${service.id}`,
+  })),
+);
 ---
 
 <Base
@@ -89,6 +114,163 @@ const pricingPoints = [
       <div class="paths-grid">
         {FAMILIES.map((family) => <ServiceFamilyCard family={family} />)}
       </div>
+    </div>
+  </section>
+
+  <!-- ==================================================== Find my fit -->
+  <section class="section quiz bg-blush-wash" id="find-my-fit">
+    <div class="container container--narrow">
+      <SectionIntro
+        eyebrow="Find my fit"
+        title="Not sure? Let&rsquo;s <em>find</em> your fit"
+        lede="Answer two quick questions and I’ll point you to the service I’d recommend if we were talking it through together."
+        center
+      />
+      <div class="quiz-shell card" data-quiz hidden>
+        <div class="quiz-track" data-quiz-track>
+          <p class="quiz-progress" data-quiz-progress>Question 1 of 2</p>
+
+          <div
+            class="quiz-step is-active"
+            data-step="q1"
+            role="group"
+            aria-labelledby="quiz-q1"
+          >
+            <h3 class="quiz-question" id="quiz-q1" tabindex="-1">
+              What&rsquo;s on your mind?
+            </h3>
+            <div class="quiz-options">
+              <button class="quiz-option" type="button" data-goto="q2a">
+                My whole closet needs a reset
+              </button>
+              <button class="quiz-option" type="button" data-goto="q2b">
+                A specific event or trip
+              </button>
+              <button class="quiz-option" type="button" data-goto="q2c">
+                I want ongoing help
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="quiz-step"
+            data-step="q2a"
+            role="group"
+            aria-labelledby="quiz-q2a"
+          >
+            <h3 class="quiz-question" id="quiz-q2a" tabindex="-1">
+              How deep should we go?
+            </h3>
+            <div class="quiz-options">
+              <button class="quiz-option" type="button" data-pick="taste-test">
+                Test the waters first
+              </button>
+              <button class="quiz-option" type="button" data-pick="deep-detox">
+                All in, full audit
+              </button>
+              <button class="quiz-option" type="button" data-pick="seasonal-pivot">
+                Keep my seasons current
+              </button>
+            </div>
+            <button class="quiz-back" type="button" data-goto="q1">
+              ← Back
+            </button>
+          </div>
+
+          <div
+            class="quiz-step"
+            data-step="q2b"
+            role="group"
+            aria-labelledby="quiz-q2b"
+          >
+            <h3 class="quiz-question" id="quiz-q2b" tabindex="-1">
+              What&rsquo;s the moment?
+            </h3>
+            <div class="quiz-options">
+              <button class="quiz-option" type="button" data-pick="occasion-edit">
+                An event or occasion
+              </button>
+              <button class="quiz-option" type="button" data-pick="suitcase-solo">
+                A trip to pack for
+              </button>
+            </div>
+            <button class="quiz-back" type="button" data-goto="q1">
+              ← Back
+            </button>
+          </div>
+
+          <div
+            class="quiz-step"
+            data-step="q2c"
+            role="group"
+            aria-labelledby="quiz-q2c"
+          >
+            <h3 class="quiz-question" id="quiz-q2c" tabindex="-1">
+              How hands-on?
+            </h3>
+            <div class="quiz-options">
+              <button class="quiz-option" type="button" data-pick="digital-stylist">
+                Text me looks and links
+              </button>
+              <button class="quiz-option" type="button" data-pick="susanne-standard">
+                The complete transformation
+              </button>
+            </div>
+            <button class="quiz-back" type="button" data-goto="q1">
+              ← Back
+            </button>
+          </div>
+        </div>
+
+        <div class="quiz-results" data-quiz-results aria-live="polite">
+          {
+            quizResults.map(({ family, service, why, href }) => (
+              <div class="quiz-result" data-result={service.id} hidden>
+                <p class="quiz-result-kicker">My recommendation</p>
+                <p class="quiz-result-family">{family.name}</p>
+                <h3 class="quiz-result-name" tabindex="-1">
+                  {service.name}
+                </h3>
+                <p class="quiz-result-meta">
+                  <span>{service.duration}</span>
+                  <span class="quiz-result-sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span class="quiz-result-price">{service.price}</span>
+                </p>
+                <p class="quiz-result-why serif-italic">{why}</p>
+                <div class="quiz-result-actions">
+                  <a class="btn btn--rose" href="/book">
+                    Book a Free Conversation
+                  </a>
+                  <a class="text-link" href={href}>
+                    Read the full details
+                  </a>
+                </div>
+                <button class="quiz-restart" type="button" data-quiz-restart>
+                  Start over
+                </button>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <noscript>
+        <div class="quiz-fallback">
+          <p>Pick the path that sounds most like you:</p>
+          <ul role="list">
+            {
+              FAMILIES.map((f) => (
+                <li>
+                  <a href={`/services/${f.slug}`}>{f.name}</a>
+                  <span>{f.promise}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </noscript>
     </div>
   </section>
 
@@ -133,7 +315,7 @@ const pricingPoints = [
           morning. It&rsquo;s everything I know how to do, done in order.
         </p>
         <div class="flagship-actions">
-          <a class="btn btn--gold" href="/services/the-susanne-standard">
+          <a class="btn btn--rose" href="/services/the-susanne-standard">
             Meet the Susanne Standard
           </a>
         </div>
@@ -142,6 +324,8 @@ const pricingPoints = [
         </p>
       </div>
       <div class="flagship-media">
+        <Sparkle size={22} top="-3%" right="-6%" delay={0.5} />
+        <Sparkle size={14} bottom="7%" left="-8%" gold delay={1.9} />
         <div class="arch-frame arch-frame--outlined flagship-photo">
           <div>
             <Image
@@ -202,6 +386,56 @@ const pricingPoints = [
   />
 </Base>
 
+<script>
+  // "Find My Fit" quiz: progressive enhancement only. The shell ships with
+  // [hidden]; no-JS visitors get the <noscript> links list instead. All
+  // result cards are server-rendered; this script only routes and reveals.
+  const quiz = document.querySelector<HTMLElement>('[data-quiz]');
+
+  if (quiz) {
+    quiz.hidden = false;
+
+    const steps = [...quiz.querySelectorAll<HTMLElement>('[data-step]')];
+    const results = [...quiz.querySelectorAll<HTMLElement>('[data-result]')];
+    const track = quiz.querySelector<HTMLElement>('[data-quiz-track]');
+    const progress = quiz.querySelector<HTMLElement>('[data-quiz-progress]');
+
+    const showStep = (id: string, focus: boolean) => {
+      if (track) track.hidden = false;
+      for (const result of results) result.hidden = true;
+      for (const step of steps) {
+        step.classList.toggle('is-active', step.dataset.step === id);
+      }
+      if (progress) {
+        progress.textContent = id === 'q1' ? 'Question 1 of 2' : 'Question 2 of 2';
+      }
+      if (focus) {
+        quiz
+          .querySelector<HTMLElement>(`[data-step="${id}"] .quiz-question`)
+          ?.focus({ preventScroll: true });
+      }
+    };
+
+    const showResult = (id: string) => {
+      if (track) track.hidden = true;
+      for (const result of results) result.hidden = result.dataset.result !== id;
+      quiz
+        .querySelector<HTMLElement>(`[data-result="${id}"] .quiz-result-name`)
+        ?.focus({ preventScroll: true });
+    };
+
+    quiz.addEventListener('click', (event) => {
+      const control = (event.target as HTMLElement).closest<HTMLElement>(
+        '[data-goto], [data-pick], [data-quiz-restart]',
+      );
+      if (!control) return;
+      if (control.dataset.goto) showStep(control.dataset.goto, true);
+      else if (control.dataset.pick) showResult(control.dataset.pick);
+      else showStep('q1', true);
+    });
+  }
+</script>
+
 <style>
   /* Hero */
   .services-hero {
@@ -217,7 +451,7 @@ const pricingPoints = [
   }
 
   .services-hero h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .services-hero .lede {
@@ -246,6 +480,217 @@ const pricingPoints = [
     gap: 1.8rem;
   }
 
+  /* Find my fit quiz */
+  .quiz-shell {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1.7rem, 1.3rem + 1.8vw, 2.8rem);
+  }
+
+  .quiz-progress {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin: 0 0 1.2rem;
+  }
+
+  .quiz-step {
+    display: none;
+  }
+
+  .quiz-step.is-active {
+    display: block;
+    animation: quiz-slide-in 0.45s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  @keyframes quiz-slide-in {
+    from {
+      opacity: 0;
+      translate: 22px 0;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .quiz-question {
+    font-size: clamp(1.5rem, 1.2rem + 1.1vw, 1.95rem);
+    margin-bottom: 1.2rem;
+  }
+
+  .quiz-options {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.85rem 1.5rem;
+    border: 1px solid var(--blush);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--espresso);
+    font-family: var(--font-sans);
+    font-size: 0.98rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--transition), background-color var(--transition),
+      box-shadow var(--transition), transform var(--transition);
+  }
+
+  .quiz-option::after {
+    content: '→';
+    flex-shrink: 0;
+    color: var(--rose);
+    font-size: 1.05rem;
+    transition: transform var(--transition);
+  }
+
+  .quiz-option:hover {
+    border-color: var(--rose);
+    background: var(--rose-tint);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+  }
+
+  .quiz-option:hover::after {
+    transform: translateX(3px);
+  }
+
+  .quiz-back,
+  .quiz-restart {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: 1.1rem;
+    padding: 0.4rem 0.2rem;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--umber);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 550;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color var(--transition);
+  }
+
+  .quiz-back:hover,
+  .quiz-restart:hover {
+    color: var(--rose-deep);
+  }
+
+  .quiz-restart {
+    text-decoration: underline;
+    text-decoration-color: var(--blush);
+    text-underline-offset: 0.25em;
+  }
+
+  .quiz-result:not([hidden]) {
+    animation: quiz-slide-in 0.45s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  .quiz-result-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin: 0 0 1rem;
+  }
+
+  .quiz-result-family {
+    font-size: 0.9rem;
+    color: var(--umber);
+    margin: 0 0 0.2rem;
+  }
+
+  .quiz-result-name {
+    font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.3rem);
+    margin-bottom: 0.4rem;
+    outline: none;
+  }
+
+  .quiz-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 560;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--umber);
+    margin: 0 0 0.9rem;
+  }
+
+  .quiz-result-sep {
+    color: var(--rose);
+  }
+
+  .quiz-result-price {
+    color: var(--espresso);
+    font-weight: 620;
+  }
+
+  .quiz-result-why {
+    font-size: 1.12rem;
+    color: var(--rose);
+    margin: 0 0 1.6rem;
+    max-width: 44ch;
+  }
+
+  .quiz-result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.4rem;
+  }
+
+  /* No-JS fallback: a simple list of the three paths. */
+  .quiz-fallback p {
+    text-align: center;
+    color: var(--umber);
+    margin-bottom: 1.4rem;
+  }
+
+  .quiz-fallback ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+    justify-items: center;
+  }
+
+  .quiz-fallback li {
+    text-align: center;
+  }
+
+  .quiz-fallback a {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--espresso);
+  }
+
+  .quiz-fallback span {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--umber);
+  }
+
   /* How it works */
   .how-steps {
     display: grid;
@@ -265,7 +710,7 @@ const pricingPoints = [
   .how-num {
     font-family: var(--font-serif);
     font-size: 1.15rem;
-    color: var(--gold);
+    color: var(--rose);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -282,7 +727,7 @@ const pricingPoints = [
   }
 
   .how-meta {
-    color: var(--sage);
+    color: var(--rose);
     font-size: 1.02rem;
     margin-bottom: 0.7rem;
   }
@@ -328,6 +773,7 @@ const pricingPoints = [
   }
 
   .flagship-media {
+    position: relative;
     justify-self: end;
     width: 100%;
     max-width: 24rem;

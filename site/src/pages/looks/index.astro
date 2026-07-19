@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LookCard from '../../components/LookCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
+import Sparkle from '../../components/Sparkle.astro';
 import { getPublishedLooks, LOOK_CATEGORIES, type LookCategory } from '../../lib/looks';
 
 const looks = await getPublishedLooks();
@@ -17,7 +18,9 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
   description="Real outfits from Susanne's closet to yours: each one a real day, one transferable style principle, and links to shop the exact or similar pieces."
 >
   <!-- ============================================================ Hero -->
-  <section class="looks-hero">
+  <section class="looks-hero bg-blush-wash">
+    <Sparkle size={22} top="10%" right="7%" delay={0.5} />
+    <Sparkle size={14} top="30%" right="14%" gold delay={1.7} />
     <div class="container">
       <p class="eyebrow">Shop the looks</p>
       <h1>Real outfits, from my closet to <em class="serif-italic">yours</em></h1>
@@ -150,6 +153,8 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
 <style>
   /* Hero */
   .looks-hero {
+    position: relative;
+    overflow: hidden;
     padding-block: clamp(3.5rem, 2.5rem + 3.5vw, 6rem) clamp(2rem, 1.5rem + 2vw, 3rem);
   }
 
@@ -158,7 +163,7 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
   }
 
   .looks-hero h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .looks-hero .lede {
@@ -191,29 +196,42 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
   }
 
   .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem; /* 44px tap target */
     font-family: var(--font-sans);
     font-size: 0.78rem;
     font-weight: 550;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--espresso);
+    white-space: nowrap;
+    color: var(--rose);
     background: transparent;
-    border: 1px solid var(--line);
+    border: 1px solid var(--rose);
     border-radius: 999px;
-    padding: 0.5rem 1.15rem;
+    padding: 0.55rem 1.25rem;
     cursor: pointer;
     transition: background-color var(--transition), color var(--transition),
-      border-color var(--transition);
+      border-color var(--transition), box-shadow var(--transition);
   }
 
   .filter-chip:hover {
-    border-color: var(--gold);
+    color: var(--rose-deep);
+    border-color: var(--rose-deep);
+    background: var(--rose-tint);
   }
 
   .filter-chip[aria-pressed='true'] {
-    background: var(--espresso);
-    border-color: var(--espresso);
-    color: var(--paper);
+    background: var(--rose);
+    border-color: var(--rose);
+    color: #fffdf9;
+  }
+
+  .filter-chip[aria-pressed='true']:hover {
+    background: var(--rose-deep);
+    border-color: var(--rose-deep);
+    color: #fffdf9;
   }
 
   .looks-grid {
@@ -227,7 +245,7 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
 
   /* Outro band */
   .looks-outro h2 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .looks-outro-lede {
@@ -254,6 +272,31 @@ const categories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((cate
       grid-template-columns: 1fr;
       max-width: 26rem;
       margin-inline: auto;
+    }
+
+    /* One swipeable row of chips, edge to edge, scrollbar hidden. */
+    .filter-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin-inline: -1.25rem;
+      padding-inline: 1.25rem;
+      padding-block: 0.4rem;
+    }
+
+    .filter-chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chips[hidden] {
+      display: none;
+    }
+
+    .filter-chip {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
     }
   }
 </style>

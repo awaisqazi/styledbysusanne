@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Sparkle from '../components/Sparkle.astro';
 import SectionIntro from '../components/SectionIntro.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { SITE } from '../lib/site';
@@ -103,9 +104,9 @@ const schema = {
   schema={schema}
 >
   <!-- ============================================================ Hero -->
-  <section class="about-hero">
+  <section class="about-hero bg-blush-wash">
     <div class="container about-hero-grid">
-      <div class="about-hero-copy">
+      <div class="about-hero-copy" data-reveal>
         <p class="eyebrow">About Susanne</p>
         <h1>Hi, I&rsquo;m <em class="serif-italic">Susanne</em>.</h1>
         <p class="lede">
@@ -118,6 +119,8 @@ const schema = {
         </p>
       </div>
       <div class="about-hero-media">
+        <Sparkle size={24} top="-2%" right="5%" delay={0.6} />
+        <Sparkle size={14} bottom="9%" left="-6%" gold delay={2.1} />
         <div class="arch-frame arch-frame--outlined about-hero-photo">
           <div>
             <Image
@@ -187,7 +190,7 @@ const schema = {
       <ul class="how-list" role="list">
         {
           principles.map((principle) => (
-            <li class="how-item">
+            <li class="how-item" data-reveal>
               <h3>{principle.title}</h3>
               <p>{principle.body}</p>
             </li>
@@ -201,13 +204,16 @@ const schema = {
   <section class="section section--ivory mirror">
     <div class="container mirror-grid">
       <div class="mirror-media">
-        <div class="arch-frame mirror-photo">
-          <Image
-            src={mirrorPhoto}
-            alt="Susanne in a red eyelet dress, photographed in the gold arch mirror against her green wall."
-            widths={[420, 640, 920]}
-            sizes="(max-width: 900px) 80vw, 36vw"
-          />
+        <div class="mirror-frame-wrap">
+          <div class="mirror-arch-outline floaty" aria-hidden="true"></div>
+          <div class="arch-frame mirror-photo">
+            <Image
+              src={mirrorPhoto}
+              alt="Susanne in a red eyelet dress, photographed in the gold arch mirror against her green wall."
+              widths={[420, 640, 920]}
+              sizes="(max-width: 900px) 80vw, 36vw"
+            />
+          </div>
         </div>
       </div>
       <div class="mirror-copy">
@@ -227,7 +233,7 @@ const schema = {
           and chase the perfect scarf across the internet like it owes me
           money. Closets are my happy place. I&rsquo;d love to visit yours.
         </p>
-        <p class="script mirror-signature" aria-hidden="true">Xo, Sus</p>
+        <p class="script mirror-signature signature-reveal" aria-hidden="true">Xo, Sus</p>
       </div>
     </div>
   </section>
@@ -282,7 +288,7 @@ const schema = {
   }
 
   .about-hero-copy h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .about-hero-note {
@@ -293,6 +299,7 @@ const schema = {
   }
 
   .about-hero-media {
+    position: relative;
     max-width: 27rem;
     justify-self: end;
     width: 100%;
@@ -397,6 +404,10 @@ const schema = {
   }
 
   /* Mirror */
+  .mirror {
+    overflow: hidden;
+  }
+
   .mirror-grid {
     display: grid;
     grid-template-columns: 0.85fr 1.15fr;
@@ -404,9 +415,21 @@ const schema = {
     align-items: center;
   }
 
+  .mirror-frame-wrap {
+    position: relative;
+    max-width: 24rem;
+  }
+
+  .mirror-arch-outline {
+    position: absolute;
+    inset: -1.1rem -1.4rem 1.1rem 1.4rem;
+    border: 1px solid var(--blush);
+    border-radius: var(--radius-arch);
+    z-index: -1;
+  }
+
   .mirror-photo {
     aspect-ratio: 4 / 5;
-    max-width: 24rem;
     box-shadow: var(--shadow-lift);
   }
 
@@ -420,7 +443,7 @@ const schema = {
 
   .mirror-signature {
     font-size: 2.6rem;
-    color: var(--gold);
+    color: var(--rose);
     margin: 1.4rem 0 0;
   }
 
@@ -485,7 +508,7 @@ const schema = {
       max-width: 24rem;
     }
 
-    .mirror-photo {
+    .mirror-frame-wrap {
       margin-inline: auto;
     }
   }

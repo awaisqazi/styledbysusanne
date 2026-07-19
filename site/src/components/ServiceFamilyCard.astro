@@ -10,7 +10,9 @@ const recommended = family.services.find((s) => s.id === family.recommendedStart
 ---
 
 <article class="family-card card">
-  <p class="family-need serif-italic">“{family.need}”</p>
+  <p class="family-need serif-italic">
+    <span class="family-need-mark" aria-hidden="true">“</span>{family.need}”
+  </p>
   <h3 class="family-name">{family.name}</h3>
   <p class="family-blurb">{family.blurb}</p>
 
@@ -48,8 +50,12 @@ const recommended = family.services.find((s) => s.id === family.recommendedStart
   }
 
   .family-card:hover {
-    box-shadow: var(--shadow-lift);
+    box-shadow: var(--shadow-lift), 0 0 0 1px var(--blush);
     transform: translateY(-3px);
+  }
+
+  .family-card:hover .family-link::after {
+    transform: translateX(3px);
   }
 
   .family-need {
@@ -57,6 +63,17 @@ const recommended = family.services.find((s) => s.id === family.recommendedStart
     color: var(--umber);
     margin: 0 0 1.4rem;
     min-height: 3.2em;
+  }
+
+  .family-need-mark {
+    font-family: var(--font-serif);
+    font-style: normal;
+    font-size: 1.8rem;
+    line-height: 0;
+    vertical-align: -0.28em;
+    color: var(--blush);
+    margin-right: 0.08em;
+    user-select: none;
   }
 
   .family-name {
@@ -98,8 +115,8 @@ const recommended = family.services.find((s) => s.id === family.recommendedStart
 
   .family-recommended {
     font-size: 0.85rem;
-    color: var(--sage-deep);
-    background: var(--sage-soft);
+    color: var(--rose-deep);
+    background: var(--rose-soft);
     border-radius: var(--radius);
     padding: 0.55rem 0.9rem;
     margin: 0 0 1.6rem;
@@ -111,7 +128,7 @@ const recommended = family.services.find((s) => s.id === family.recommendedStart
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
     margin-bottom: 0.15rem;
   }
 

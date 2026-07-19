@@ -15,7 +15,7 @@ const year = new Date().getFullYear();
           Personal style that makes getting dressed effortless, and makes who
           you are unmistakable.
         </p>
-        <p class="script footer-signature" aria-hidden="true">Xo, Sus</p>
+        <p class="script footer-signature signature-reveal" aria-hidden="true">Xo, Sus</p>
       </div>
 
       <nav class="footer-col" aria-label="Footer">
@@ -80,6 +80,22 @@ const year = new Date().getFullYear();
     margin-top: auto;
   }
 
+  .site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--blush),
+      var(--gold-hairline),
+      transparent
+    );
+  }
+
   .footer-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
@@ -108,7 +124,7 @@ const year = new Date().getFullYear();
 
   .footer-signature {
     font-size: 2.1rem;
-    color: var(--gold-hairline);
+    color: var(--blush);
     margin: 1.4rem 0 0;
   }
 
@@ -140,7 +156,7 @@ const year = new Date().getFullYear();
   .footer-col a:hover {
     color: var(--paper);
     text-decoration: underline;
-    text-decoration-color: var(--gold);
+    text-decoration-color: var(--blush);
   }
 
   .footer-rule {
@@ -185,6 +201,7 @@ const year = new Date().getFullYear();
   .footer-legal a:hover {
     color: var(--paper);
     text-decoration: underline;
+    text-decoration-color: var(--blush);
   }
 
   @media (max-width: 900px) {

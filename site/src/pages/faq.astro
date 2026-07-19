@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Sparkle from '../components/Sparkle.astro';
 import FaqItem from '../components/FaqItem.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { SITE } from '../lib/site';
@@ -28,6 +29,7 @@ const schema = {
   <section class="section">
     <div class="container container--narrow">
       <header class="faq-header">
+        <Sparkle size={20} top="0.2rem" right="0.5rem" delay={0.7} />
         <p class="eyebrow">Good questions</p>
         <h1>Everything people ask <em class="serif-italic">before</em> booking</h1>
         <p class="lede">
@@ -60,6 +62,7 @@ const schema = {
 
 <style>
   .faq-header {
+    position: relative;
     margin-bottom: clamp(1.6rem, 1.2rem + 1.5vw, 2.6rem);
     padding-bottom: 1.8rem;
     border-bottom: 1px solid var(--line);
@@ -71,7 +74,7 @@ const schema = {
   }
 
   .faq-header h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .faq-header .lede {

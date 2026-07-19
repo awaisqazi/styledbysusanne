@@ -1,0 +1,40 @@
+---
+/**
+ * Decorative four-point sparkle, absolutely positioned inside the nearest
+ * position:relative ancestor. Purely ornamental (aria-hidden), twinkles
+ * gently unless the visitor prefers reduced motion.
+ */
+interface Props {
+  size?: number;
+  top?: string;
+  left?: string;
+  right?: string;
+  bottom?: string;
+  gold?: boolean;
+  /** Seconds to offset the twinkle so clusters feel organic. */
+  delay?: number;
+}
+
+const { size = 18, top, left, right, bottom, gold = false, delay = 0 } = Astro.props;
+
+const position = [
+  top && `top:${top}`,
+  left && `left:${left}`,
+  right && `right:${right}`,
+  bottom && `bottom:${bottom}`,
+]
+  .filter(Boolean)
+  .join(';');
+---
+
+<svg
+  class:list={['sparkle', { 'sparkle--gold': gold }]}
+  style={`width:${size}px;height:${size}px;${position};--sparkle-delay:${delay}s`}
+  viewBox="0 0 24 24"
+  fill="currentColor"
+  aria-hidden="true"
+>
+  <path
+    d="M12 0c.6 6.4 5.6 11.4 12 12-6.4.6-11.4 5.6-12 12-.6-6.4-5.6-11.4-12-12C6.4 11.4 11.4 6.4 12 0Z"
+  ></path>
+</svg>

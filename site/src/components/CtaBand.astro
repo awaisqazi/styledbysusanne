@@ -1,4 +1,6 @@
 ---
+import Sparkle from './Sparkle.astro';
+
 /**
  * Full-width espresso closing band with the primary booking CTA.
  * Drop at the bottom of most pages, above the footer.
@@ -23,12 +25,16 @@ const {
 ---
 
 <section class="section section--espresso cta-band">
-  <div class="container text-center">
+  <div class="container text-center cta-band-inner">
+    <Sparkle size={22} top="6%" left="12%" delay={0.4} />
+    <Sparkle size={14} top="22%" right="10%" gold delay={1.6} />
+    <Sparkle size={17} bottom="14%" left="20%" gold delay={2.4} />
+    <Sparkle size={12} bottom="26%" right="22%" delay={3.1} />
     <p class="eyebrow eyebrow--center">Where style meets intention</p>
     <h2 set:html={title} />
     <p class="lede cta-band-lede">{lede}</p>
     <div class="cta-band-actions">
-      <a class="btn btn--gold" href={primaryHref}>{primaryLabel}</a>
+      <a class="btn btn--rose" href={primaryHref}>{primaryLabel}</a>
       {
         secondaryLabel && secondaryHref && (
           <a class="btn btn--outline" href={secondaryHref}>
@@ -37,11 +43,22 @@ const {
         )
       }
     </div>
-    <p class="script cta-band-signature" aria-hidden="true">Xo, Sus</p>
+    <p class="script cta-band-signature signature-reveal" aria-hidden="true">Xo, Sus</p>
   </div>
 </section>
 
 <style>
+  .cta-band {
+    background:
+      radial-gradient(46rem 26rem at 84% 0%, rgba(221, 163, 176, 0.13), transparent 62%),
+      radial-gradient(38rem 24rem at 8% 100%, rgba(216, 198, 159, 0.1), transparent 60%),
+      var(--espresso);
+  }
+
+  .cta-band-inner {
+    position: relative;
+  }
+
   .cta-band h2 {
     max-width: 20ch;
     margin-inline: auto;
@@ -61,7 +78,7 @@ const {
 
   .cta-band-signature {
     font-size: 2.4rem;
-    color: var(--gold-hairline);
+    color: var(--blush);
     margin: 2.6rem 0 0;
   }
 </style>

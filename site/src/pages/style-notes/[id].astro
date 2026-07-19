@@ -115,12 +115,14 @@ const formatDate = (date: Date): string =>
     box-shadow: var(--shadow-card);
     padding: 1.8rem 2rem;
     text-decoration: none;
-    transition: box-shadow var(--transition), transform var(--transition);
+    transition: box-shadow var(--transition), transform var(--transition),
+      border-color var(--transition);
   }
 
   .keep-reading-item:hover {
     box-shadow: var(--shadow-lift);
     transform: translateY(-2px);
+    border-color: var(--blush);
   }
 
   .keep-reading-date {
@@ -128,7 +130,7 @@ const formatDate = (date: Date): string =>
     font-weight: 550;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--umber);
+    color: var(--rose);
     margin-bottom: 0.5rem;
   }
 
@@ -139,7 +141,7 @@ const formatDate = (date: Date): string =>
   }
 
   .keep-reading-item:hover .keep-reading-title {
-    color: var(--gold);
+    color: var(--rose-deep);
   }
 
   .keep-reading-desc {

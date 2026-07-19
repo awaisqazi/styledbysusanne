@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import SectionIntro from '../components/SectionIntro.astro';
+import Sparkle from '../components/Sparkle.astro';
 import { SITE, BOOKING_FORM_URL } from '../lib/site';
 
 const embeddedFormUrl = `${BOOKING_FORM_URL}?embedded=true`;
@@ -29,7 +30,9 @@ const steps = [
   description="Start with a complimentary, 30-minute style conversation, no prep needed. Fill out the questionnaire and get an exact quote for Chicago or virtual styling."
 >
   <!-- ============================================================ Hero -->
-  <section class="book-hero">
+  <section class="book-hero bg-blush-wash">
+    <Sparkle size={22} top="1rem" right="12%" delay={0.5} />
+    <Sparkle size={14} top="2.1rem" left="10%" gold delay={1.9} />
     <div class="container container--narrow text-center">
       <p class="eyebrow eyebrow--center">Let&rsquo;s do this</p>
       <h1>Book a <em class="serif-italic">Style Conversation</em></h1>
@@ -52,7 +55,7 @@ const steps = [
       <ol class="steps-grid" role="list">
         {
           steps.map((step, i) => (
-            <li class="step card">
+            <li class="step card" data-reveal>
               <span class="step-num" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
               </span>
@@ -69,7 +72,7 @@ const steps = [
   <section class="section cta">
     <div class="container container--narrow text-center">
       <a
-        class="btn btn--gold cta-button"
+        class="btn btn--rose cta-button"
         href={BOOKING_FORM_URL}
         target="_blank"
         rel="noopener"
@@ -119,18 +122,19 @@ const steps = [
 
   <!-- ========================================================= Sign-off -->
   <div class="signoff text-center">
-    <p class="script signoff-script" aria-hidden="true">Xo, Sus</p>
+    <p class="script signoff-script signature-reveal" aria-hidden="true">Xo, Sus</p>
   </div>
 </Base>
 
 <style>
   /* Hero */
   .book-hero {
+    position: relative;
     padding-block: clamp(3.5rem, 2.5rem + 4vw, 6.5rem) clamp(3rem, 2rem + 3vw, 5rem);
   }
 
   .book-hero h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .book-hero .lede {
@@ -152,16 +156,17 @@ const steps = [
     padding: 2.1rem 1.9rem;
   }
 
+  /* Rose medallions */
   .step-num {
     font-family: var(--font-serif);
     font-size: 1.15rem;
-    color: var(--gold-deep);
+    color: var(--rose);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border: 1px solid var(--gold-hairline);
+    border: 1px solid var(--blush);
     border-radius: 50%;
     margin-bottom: 1.2rem;
   }
@@ -199,7 +204,7 @@ const steps = [
   }
 
   .cta-dot {
-    color: var(--gold);
+    color: var(--rose);
     margin-inline: 0.35rem;
   }
 
@@ -214,6 +219,7 @@ const steps = [
 
   .questionnaire-card {
     padding: clamp(0.6rem, 0.4rem + 1vw, 1.2rem);
+    border-top: 5px solid var(--rose-soft);
   }
 
   .questionnaire-card iframe {
@@ -243,7 +249,7 @@ const steps = [
     font-weight: 560;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
   }
 
   .reassurance-list li {
@@ -254,7 +260,7 @@ const steps = [
   .reassurance-list li + li::before {
     content: '◆';
     font-size: 0.45rem;
-    color: var(--gold);
+    color: var(--rose);
     margin-inline: 1.4rem;
   }
 
@@ -264,8 +270,9 @@ const steps = [
   }
 
   .signoff-script {
+    display: inline-block;
     font-size: 2.6rem;
-    color: var(--gold);
+    color: var(--rose);
     margin: 0;
   }
 

@@ -4,6 +4,7 @@ import { render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import EmailCapture from '../../components/EmailCapture.astro';
 import CtaBand from '../../components/CtaBand.astro';
+import Sparkle from '../../components/Sparkle.astro';
 import { getPublishedLooks, LOOK_CATEGORIES } from '../../lib/looks';
 
 export async function getStaticPaths() {
@@ -46,6 +47,10 @@ const dateLabel = date.toLocaleDateString('en-US', {
 /** Hide prev/next when there is only one published look. */
 const hasNav = newer.id !== entry.id;
 
+/** Sticky mobile CTA: promise shopping only when a piece actually links out. */
+const hasShoppablePieces = pieces.some((piece) => piece.url);
+const mobileCtaLabel = hasShoppablePieces ? 'Shop This Look ↓' : 'See the Pieces ↓';
+
 const description = `${teaser} Shop the exact pieces and similar finds at every price point.`;
 ---
 
@@ -54,6 +59,7 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     <div class="container look-grid">
       <!-- ==================================================== Sticky photo -->
       <div class="look-media">
+        <Sparkle size={18} top="-1.5%" right="7%" delay={0.8} />
         <div class="arch-frame look-photo">
           <Image
             src={image}
@@ -96,21 +102,25 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
               <h2 id="exact-pieces">Shop the exact pieces</h2>
               <ul class="piece-list" role="list">
                 {pieces.map((piece) => (
-                  <li class="piece">
+                  <li class="piece" data-reveal>
                     {piece.url ? (
                       <a
-                        class="piece-link"
+                        class="piece-card piece-card--link"
                         href={piece.url}
                         target="_blank"
                         rel="nofollow sponsored noopener"
                       >
-                        {piece.label}
+                        <span class="piece-label">{piece.label}</span>
+                        {piece.source && <span class="piece-tag">{piece.source}</span>}
+                        <span class="piece-arrow" aria-hidden="true">→</span>
                       </a>
                     ) : (
-                      <span class="piece-name">{piece.label}</span>
+                      <div class="piece-card">
+                        <span class="piece-label">{piece.label}</span>
+                        {piece.source && <span class="piece-tag">{piece.source}</span>}
+                        <span class="piece-soon">shoppable link coming soon</span>
+                      </div>
                     )}
-                    {piece.source && <span class="piece-source">{piece.source}</span>}
-                    {!piece.url && <span class="piece-soon">shoppable link coming soon</span>}
                   </li>
                 ))}
               </ul>
@@ -124,20 +134,28 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
               <h2 id="similar-pieces">Similar at other price points</h2>
               <ul class="similar-list" role="list">
                 {similar.map((item) => (
-                  <li class="similar">
+                  <li class="similar" data-reveal>
                     {item.url ? (
                       <a
-                        class="piece-link"
+                        class="piece-card piece-card--link piece-card--lite"
                         href={item.url}
                         target="_blank"
                         rel="nofollow sponsored noopener"
                       >
-                        {item.label}
+                        <span class="piece-main">
+                          <span class="piece-label">{item.label}</span>
+                          {item.note && <span class="similar-note">{item.note}</span>}
+                        </span>
+                        <span class="piece-arrow" aria-hidden="true">→</span>
                       </a>
                     ) : (
-                      <span class="piece-name">{item.label}</span>
+                      <div class="piece-card piece-card--lite">
+                        <span class="piece-main">
+                          <span class="piece-label">{item.label}</span>
+                          {item.note && <span class="similar-note">{item.note}</span>}
+                        </span>
+                      </div>
                     )}
-                    {item.note && <p class="similar-note">{item.note}</p>}
                   </li>
                 ))}
               </ul>
@@ -148,12 +166,13 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
         {
           service && (
             <aside class="look-service card">
+              <Sparkle size={14} top="1rem" right="1rem" gold delay={1.4} />
               <p class="look-service-label">Make it yours</p>
               <p class="look-service-blurb">
                 {service.blurb ??
                   `This exact styling need has a service built for it: ${service.label}.`}
               </p>
-              <a class="btn btn--primary" href={service.href}>
+              <a class="btn btn--rose" href={service.href}>
                 {service.label}
               </a>
             </aside>
@@ -220,7 +239,33 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     secondaryLabel="Browse All Looks"
     secondaryHref="/looks"
   />
+
+  {
+    pieces.length > 0 && (
+      <div class="mobile-cta" data-mobile-cta>
+        <a class="btn btn--rose" href="#exact-pieces">{mobileCtaLabel}</a>
+      </div>
+    )
+  }
 </Base>
+
+<script>
+  // Sticky shop bar, mobile only: slides in once the visitor has scrolled
+  // past ~55% of the first viewport, slides away again near the top.
+  // Progressive enhancement: without JS the bar simply never appears.
+  const bar = document.querySelector<HTMLElement>('[data-mobile-cta]');
+
+  if (bar) {
+    const mq = window.matchMedia('(max-width: 900px)');
+    const update = () => {
+      const shown = mq.matches && window.scrollY > window.innerHeight * 0.55;
+      bar.classList.toggle('is-shown', shown);
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+</script>
 
 <style>
   .look {
@@ -314,61 +359,114 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    gap: 0.7rem;
   }
 
-  .piece {
+  /* Tappable product card-pills: the whole row is the affiliate link. */
+  .piece-card {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.35rem 0.8rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--line-soft);
+    align-items: center;
+    gap: 0.45rem 0.9rem;
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
   }
 
-  .piece-link {
-    font-weight: 480;
+  a.piece-card {
+    text-decoration: none;
+    box-shadow: var(--shadow-card);
+    transition: border-color var(--transition), box-shadow var(--transition),
+      transform var(--transition);
   }
 
-  .piece-name {
+  a.piece-card:hover,
+  a.piece-card:focus-visible {
+    border-color: var(--blush);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+
+  .piece-label {
+    flex: 1 1 12ch;
+    min-width: 0;
     color: var(--espresso);
+    font-weight: 480;
+    line-height: 1.45;
   }
 
-  .piece-source {
+  .piece-tag {
     font-size: 0.68rem;
-    font-weight: 570;
-    letter-spacing: 0.14em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--umber);
-    border: 1px solid var(--line);
+    color: var(--rose-deep);
+    background: var(--rose-soft);
     border-radius: 999px;
-    padding: 0.15rem 0.6rem;
+    padding: 0.28rem 0.7rem;
+    white-space: nowrap;
+  }
+
+  .piece-arrow {
+    color: var(--rose);
+    font-size: 1.05rem;
+    line-height: 1;
+    transition: transform var(--transition);
+  }
+
+  a.piece-card:hover .piece-arrow,
+  a.piece-card:focus-visible .piece-arrow {
+    transform: translateX(4px);
   }
 
   .piece-soon {
     font-family: var(--font-serif);
     font-style: italic;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: var(--umber);
   }
 
-  .similar {
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--line-soft);
+  /* Similar finds: same shape, lighter weight. */
+  .piece-card--lite {
+    padding: 0.8rem 0.9rem;
+  }
+
+  a.piece-card--lite {
+    box-shadow: none;
+  }
+
+  a.piece-card--lite:hover,
+  a.piece-card--lite:focus-visible {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+  }
+
+  .piece-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1 1 12ch;
+    min-width: 0;
   }
 
   .similar-note {
     font-family: var(--font-serif);
     font-style: italic;
-    font-size: 1rem;
+    font-size: 0.98rem;
     color: var(--umber);
-    margin: 0.2rem 0 0;
+    margin: 0;
   }
 
   /* Make it yours */
   .look-service {
+    position: relative;
     padding: 1.8rem;
     margin-top: 2.6rem;
-    border: 1px solid var(--gold-hairline);
+    background: var(--rose-soft);
+    border: 1px solid var(--blush);
   }
 
   .look-service-label {
@@ -376,7 +474,7 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold-deep);
+    color: var(--rose-deep);
     margin-bottom: 0.5rem;
   }
 
@@ -450,7 +548,7 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     font-weight: 570;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
     margin: 0 0 0.3rem;
   }
 
@@ -462,14 +560,52 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     margin: 0;
   }
 
+  /* Sticky mobile shop bar (hidden on desktop, JS slides it in on scroll) */
+  .mobile-cta {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+    background: rgba(250, 246, 239, 0.94);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    display: none;
+  }
+
+  .mobile-cta .btn {
+    width: 100%;
+  }
+
+  @media (max-width: 900px) {
+    .mobile-cta {
+      display: block;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform var(--transition), opacity var(--transition);
+    }
+
+    .mobile-cta.is-shown {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Keep the closing band's buttons clear of the fixed bar. */
+    :global(.cta-band) {
+      margin-bottom: 4.5rem;
+    }
+  }
+
   /* Responsive */
   @media (max-width: 940px) {
     .look-grid {
       grid-template-columns: 1fr;
     }
 
+    /* Relative (not static) so the decorative sparkle stays anchored. */
     .look-media {
-      position: static;
+      position: relative;
+      top: 0;
       max-width: 26rem;
       margin-inline: auto;
       width: 100%;

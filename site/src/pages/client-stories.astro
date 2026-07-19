@@ -122,7 +122,7 @@ const storyOutline = [
       <ol class="outline-steps">
         {
           storyOutline.map((step, i) => (
-            <li class="outline-step">
+            <li class="outline-step" data-reveal>
               <span class="outline-num" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
               </span>
@@ -151,7 +151,7 @@ const storyOutline = [
           </p>
         </div>
         <div class="invitation-action">
-          <a class="btn btn--primary" href={storyMailto}>Share Your Story</a>
+          <a class="btn btn--rose" href={storyMailto}>Share Your Story</a>
           <p class="invitation-note">
             Opens an email to Susanne, subject line already written, because
             of course it is.
@@ -180,7 +180,7 @@ const storyOutline = [
   }
 
   .stories-hero h1 em {
-    color: var(--gold);
+    color: var(--rose);
   }
 
   .stories-hero .lede {
@@ -190,7 +190,7 @@ const storyOutline = [
   /* Empty-state promise */
   .promise {
     padding: clamp(1.8rem, 1.4rem + 2vw, 3rem);
-    border-left: 2px solid var(--gold);
+    border-left: 2px solid var(--blush);
   }
 
   .promise-label {
@@ -198,7 +198,7 @@ const storyOutline = [
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--gold-deep);
+    color: var(--rose);
     margin-bottom: 1rem;
   }
 
@@ -228,7 +228,7 @@ const storyOutline = [
     font-family: var(--font-serif);
     font-size: 3.2rem;
     line-height: 0.6;
-    color: var(--gold-hairline);
+    color: var(--blush);
     margin-bottom: 0.6rem;
   }
 
@@ -246,7 +246,7 @@ const storyOutline = [
     font-weight: 560;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--rose);
     margin-bottom: 1.3rem;
   }
 
@@ -263,7 +263,7 @@ const storyOutline = [
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--gold-deep);
+    color: var(--rose);
     margin-bottom: 0.15rem;
   }
 
@@ -301,13 +301,13 @@ const storyOutline = [
   .outline-num {
     font-family: var(--font-serif);
     font-size: 1.15rem;
-    color: var(--gold-deep);
+    color: var(--rose);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border: 1px solid var(--gold-hairline);
+    border: 1px solid var(--blush);
     border-radius: 50%;
   }
 
@@ -332,6 +332,7 @@ const storyOutline = [
     padding: clamp(2rem, 1.5rem + 2.5vw, 4rem);
     background: var(--blush-soft);
     border-color: rgba(201, 149, 138, 0.25);
+    border-left: 2px solid var(--blush);
   }
 
   .invitation-copy h2 {
