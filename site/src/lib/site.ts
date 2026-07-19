@@ -18,12 +18,32 @@ export const SITE = {
 } as const;
 
 /**
- * Booking currently runs through Susanne's Google Form (the same link used
- * in the Instagram bio). When a dedicated scheduler (e.g. Calendly/Acuity)
- * replaces it, update this one constant.
+ * The site's themed contact form posts directly to a hidden Google Form
+ * ("Styled by Susanne · Style Inquiry"). Responses collect in Google Forms;
+ * the visitor never sees Google's UI. If the form is ever recreated, update
+ * the action URL and the entry IDs together (extract them from the new
+ * form's public viewform HTML).
  */
-export const BOOKING_FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLSe1j5IgJc4ijKbDBEsAQ7E-uDCSwxtz03nG2ZQc_UkaDgx3Yg/viewform';
+export const INQUIRY_FORM = {
+  action:
+    'https://docs.google.com/forms/d/e/1FAIpQLSeeEBehn2YiouVbQdtHZsd6IoJ31n1u-jpNOVxIQi2Ki0HRjQ/formResponse',
+  fields: {
+    name: 'entry.741835830',
+    email: 'entry.391311185',
+    instagram: 'entry.303079961',
+    reason: 'entry.884233403',
+    message: 'entry.179219131',
+    location: 'entry.1221836998',
+  },
+  /** Must match the Google Form's multiple-choice options exactly. */
+  reasons: [
+    'Reset my whole wardrobe',
+    'Style a moment: an event or trip',
+    'Ongoing styling support',
+    'A gift for someone',
+    'Just a question',
+  ],
+} as const;
 
 /**
  * Email capture provider form action. Leave empty until an email platform

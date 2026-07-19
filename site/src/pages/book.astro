@@ -2,15 +2,13 @@
 import Base from '../layouts/Base.astro';
 import SectionIntro from '../components/SectionIntro.astro';
 import Sparkle from '../components/Sparkle.astro';
-import { SITE, BOOKING_FORM_URL } from '../lib/site';
-
-const embeddedFormUrl = `${BOOKING_FORM_URL}?embedded=true`;
+import { SITE, INQUIRY_FORM } from '../lib/site';
 
 const steps = [
   {
-    title: 'Fill out the questionnaire',
+    title: 'Send the inquiry',
     detail:
-      'A short style questionnaire: a few minutes on your closet, your calendar, and what you wish getting dressed felt like. There are no wrong answers.',
+      'The short form below: a few lines on your closet, your calendar, and what you wish getting dressed felt like. There are no wrong answers.',
   },
   {
     title: 'We talk',
@@ -27,7 +25,7 @@ const steps = [
 
 <Base
   title="Book a Style Conversation"
-  description="Start with a complimentary, 30-minute style conversation, no prep needed. Fill out the questionnaire and get an exact quote for Chicago or virtual styling."
+  description="Start with a complimentary, 30-minute style conversation, no prep needed. Send a quick inquiry and get an exact quote for Chicago or virtual styling."
 >
   <!-- ============================================================ Hero -->
   <section class="book-hero bg-blush-wash">
@@ -68,40 +66,121 @@ const steps = [
     </div>
   </section>
 
-  <!-- ====================================================== Primary CTA -->
-  <section class="section cta">
-    <div class="container container--narrow text-center">
-      <a
-        class="btn btn--rose cta-button"
-        href={BOOKING_FORM_URL}
-        target="_blank"
-        rel="noopener"
-      >
-        Open the Style Questionnaire<span class="visually-hidden"> (opens in a new tab)</span>
-      </a>
+  <!-- ===================================================== Inquiry form -->
+  <section class="section section--ivory inquiry" id="inquiry">
+    <div class="container container--narrow">
+      <div class="card inquiry-card">
+        <Sparkle size={16} top="1.2rem" right="1.4rem" gold delay={1.1} />
+
+        <form
+          class="inquiry-form"
+          method="POST"
+          action={INQUIRY_FORM.action}
+          data-inquiry-form
+        >
+          <div class="inquiry-row">
+            <div class="inquiry-field">
+              <label for="inq-name">Your name <span class="req" aria-hidden="true">*</span></label>
+              <input
+                id="inq-name"
+                type="text"
+                name={INQUIRY_FORM.fields.name}
+                autocomplete="name"
+                required
+              />
+            </div>
+            <div class="inquiry-field">
+              <label for="inq-email">Email address <span class="req" aria-hidden="true">*</span></label>
+              <input
+                id="inq-email"
+                type="email"
+                name={INQUIRY_FORM.fields.email}
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="inquiry-row">
+            <div class="inquiry-field">
+              <label for="inq-instagram">Instagram handle <span class="opt">optional</span></label>
+              <input
+                id="inq-instagram"
+                type="text"
+                name={INQUIRY_FORM.fields.instagram}
+                placeholder="@yourhandle"
+              />
+            </div>
+            <div class="inquiry-field">
+              <label for="inq-location">City or neighborhood <span class="opt">optional</span></label>
+              <input
+                id="inq-location"
+                type="text"
+                name={INQUIRY_FORM.fields.location}
+                autocomplete="address-level2"
+              />
+            </div>
+          </div>
+
+          <fieldset class="inquiry-field inquiry-reasons">
+            <legend>What brings you here? <span class="req" aria-hidden="true">*</span></legend>
+            <div class="reason-pills">
+              {
+                INQUIRY_FORM.reasons.map((reason, index) => (
+                  <label class="reason-pill">
+                    <input
+                      type="radio"
+                      name={INQUIRY_FORM.fields.reason}
+                      value={reason}
+                      required={index === 0}
+                    />
+                    <span>{reason}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          <div class="inquiry-field">
+            <label for="inq-message">
+              Tell me about your closet, your life, and what you want your
+              style to say <span class="req" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              id="inq-message"
+              name={INQUIRY_FORM.fields.message}
+              rows="6"
+              required></textarea>
+          </div>
+
+          <div class="inquiry-actions">
+            <button class="btn btn--rose inquiry-submit" type="submit" data-inquiry-submit>
+              Send My Inquiry
+            </button>
+            <p class="inquiry-note">
+              Goes straight to Susanne. No login, no new tab.
+            </p>
+          </div>
+        </form>
+
+        <div class="inquiry-success" data-inquiry-success hidden>
+          <p class="script inquiry-success-script" aria-hidden="true">
+            It&rsquo;s on its way
+          </p>
+          <h2>Thank you!</h2>
+          <p>
+            I read every inquiry myself, and I&rsquo;ll reply soon about your
+            complimentary style conversation. Talk shortly. Xo, Sus
+          </p>
+          <a class="text-link" href="/looks">Browse the looks while you wait</a>
+        </div>
+      </div>
+
       <p class="cta-alt">
         Prefer people over forms? Same, honestly. <a
           href={SITE.instagram} rel="noopener">DM me on Instagram</a> and
         we'll chat there.
       </p>
-    </div>
-  </section>
-
-  <!-- ============================================ Embedded questionnaire -->
-  <section class="section section--ivory questionnaire" id="questionnaire">
-    <div class="container container--narrow">
-      <p class="questionnaire-note">
-        The same questionnaire, right here. Or use the button above to open it
-        in a new tab. Either way it lands with me.
-      </p>
-      <div class="card questionnaire-card">
-        <iframe
-          src={embeddedFormUrl}
-          title="Style questionnaire"
-          height="1400"
-          loading="lazy"
-        ></iframe>
-      </div>
     </div>
   </section>
 
@@ -205,26 +284,184 @@ const steps = [
     margin-inline: 0.35rem;
   }
 
-  /* Questionnaire */
-  .questionnaire-note {
-    text-align: center;
-    font-size: 0.92rem;
-    color: var(--umber);
-    max-width: 44ch;
-    margin: 0 auto 1.8rem;
-  }
-
-  .questionnaire-card {
-    padding: clamp(0.6rem, 0.4rem + 1vw, 1.2rem);
+  /* Inquiry form */
+  .inquiry-card {
+    position: relative;
+    padding: clamp(1.8rem, 1.3rem + 2vw, 3rem);
     border-top: 5px solid var(--rose-soft);
   }
 
-  .questionnaire-card iframe {
-    display: block;
-    width: 100%;
+  .inquiry-form {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .inquiry-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .inquiry-field {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
     border: 0;
+    min-width: 0;
+  }
+
+  .inquiry-field label,
+  .inquiry-field legend {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--espresso);
+    padding: 0;
+  }
+
+  .inquiry-reasons legend {
+    margin-bottom: 0.55rem;
+  }
+
+  .req {
+    color: var(--rose);
+  }
+
+  .opt {
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    color: var(--umber);
+  }
+
+  .inquiry-field input,
+  .inquiry-field textarea {
+    font: inherit;
+    color: var(--espresso);
+    background: var(--paper);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: var(--card);
+    padding: 0.8rem 1rem;
+    width: 100%;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .inquiry-field textarea {
+    resize: vertical;
+    min-height: 8.5rem;
+  }
+
+  .inquiry-field input:hover,
+  .inquiry-field textarea:hover {
+    border-color: var(--blush);
+  }
+
+  .inquiry-field input:focus-visible,
+  .inquiry-field textarea:focus-visible {
+    outline: none;
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px var(--rose-soft);
+  }
+
+  .reason-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .reason-pill {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .reason-pill input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .reason-pill span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.85rem;
+    font-weight: 530;
+    color: var(--rose);
+    background: var(--paper);
+    border: 1px solid var(--rose);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition),
+      box-shadow var(--transition);
+  }
+
+  .reason-pill:hover span {
+    background: var(--rose-tint);
+  }
+
+  .reason-pill input:checked + span {
+    background: var(--rose);
+    color: #fffdf9;
+  }
+
+  .reason-pill input:focus-visible + span {
+    box-shadow: 0 0 0 3px var(--rose-soft);
+    outline: 2px solid var(--rose);
+    outline-offset: 1px;
+  }
+
+  .inquiry-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 0.4rem;
+  }
+
+  .inquiry-submit {
+    font-size: 1rem;
+    padding: 1.05rem 2.6rem;
+  }
+
+  .inquiry-submit[disabled] {
+    opacity: 0.65;
+    cursor: default;
+    transform: none;
+  }
+
+  .inquiry-note {
+    font-size: 0.82rem;
+    color: var(--umber);
+    margin: 0;
+  }
+
+  .inquiry-success {
+    text-align: center;
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+
+  .inquiry-success[hidden] {
+    display: none;
+  }
+
+  .inquiry-success-script {
+    font-size: 2.6rem;
+    color: var(--rose);
+    margin: 0 0 0.4rem;
+  }
+
+  .inquiry-success h2 {
+    margin-bottom: 0.4em;
+  }
+
+  .inquiry-success p:not(.inquiry-success-script) {
+    color: var(--umber);
+    max-width: 40ch;
+    margin-inline: auto;
   }
 
   /* Reassurance strip */
@@ -295,4 +532,53 @@ const steps = [
       margin-inline: auto;
     }
   }
+
+  @media (max-width: 640px) {
+    .inquiry-row {
+      grid-template-columns: 1fr;
+    }
+
+    .inquiry-actions {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+  }
 </style>
+
+<script>
+  // The form posts to a hidden Google Form. fetch(no-cors) submits without
+  // ever showing Google's UI; the themed success panel replaces the form.
+  // Without JavaScript the native POST still records the response (the
+  // visitor lands on Google's plain confirmation page).
+  const form = document.querySelector<HTMLFormElement>('[data-inquiry-form]');
+  const success = document.querySelector<HTMLElement>('[data-inquiry-success]');
+  const submit = document.querySelector<HTMLButtonElement>('[data-inquiry-submit]');
+
+  form?.addEventListener('submit', (event) => {
+    if (!form.reportValidity()) return;
+    event.preventDefault();
+
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+    }
+
+    fetch(form.action, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: new FormData(form),
+    })
+      .then(() => {
+        form.hidden = true;
+        if (success) {
+          success.hidden = false;
+          success.querySelector('h2')?.scrollIntoView({ block: 'center' });
+        }
+      })
+      .catch(() => {
+        // Network hiccup: fall back to the native POST so nothing is lost.
+        form.submit();
+      });
+  });
+</script>
