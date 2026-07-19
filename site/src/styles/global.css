@@ -72,6 +72,14 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Horizontal overflow never widens the page; wide content must scroll
+   inside its own container instead. (clip, unlike hidden, cannot create
+   an unintended scroll container.) */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   background-color: var(--paper);

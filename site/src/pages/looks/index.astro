@@ -438,8 +438,12 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
   }
 
   .instagram-grid > li {
+    min-width: 0;
     content-visibility: auto;
-    contain-intrinsic-size: auto 46rem;
+    /* Height-only placeholder: a single-value contain-intrinsic-size would
+       also claim 46rem of WIDTH for skipped items and widen the page. */
+    contain-intrinsic-width: auto none;
+    contain-intrinsic-height: auto 46rem;
   }
 
   .lookbook-more {
@@ -472,7 +476,7 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
   /* Responsive */
   @media (max-width: 980px) {
     .instagram-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -489,7 +493,7 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     }
 
     .instagram-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       max-width: 26rem;
       margin-inline: auto;
       gap: 1.5rem;
