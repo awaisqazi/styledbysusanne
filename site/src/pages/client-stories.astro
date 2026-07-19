@@ -15,10 +15,6 @@ const stories = (await getCollection('stories', ({ data }) => !data.draft)).sort
 );
 const hasStories = stories.length > 0;
 
-const storyMailto = `mailto:${SITE.email}?subject=${encodeURIComponent(
-  'My Styled by Susanne story',
-)}`;
-
 /** The shape every published story will follow, shown as an outline, not a mock-up. */
 const storyOutline = [
   {
@@ -151,10 +147,10 @@ const storyOutline = [
           </p>
         </div>
         <div class="invitation-action">
-          <a class="btn btn--rose" href={storyMailto}>Share Your Story</a>
+          <a class="btn btn--rose" href={SITE.instagram} rel="noopener">Share Your Story</a>
           <p class="invitation-note">
-            Opens an email to Susanne, subject line already written, because
-            of course it is.
+            DM {SITE.instagramHandle} on Instagram, or mention it through the
+            <a href="/book">inquiry form</a>, and we'll take it from there.
           </p>
         </div>
       </div>
