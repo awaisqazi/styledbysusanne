@@ -17,6 +17,10 @@ function* htmlFiles(dir) {
   }
 }
 
+// Spans with these classes are styled display:block (or are decorative quote
+// marks that intentionally hug the following word) — adjacency is fine.
+const BLOCK_STYLED_CLASSES = /class="[^"]*\b(?:svc-label|svc-badge-kicker|quote-mark)\b[^"]*"/;
+
 const CHECKS = [
   {
     // punctuation glued to an opening inline tag: "you.<a>Here"
@@ -24,9 +28,12 @@ const CHECKS = [
     name: 'punct→inline-tag collapse',
   },
   {
-    // closing inline tag glued to a following word: "</a>Here"
-    re: new RegExp(`</(?:${INLINE})>[A-Za-z]`, 'g'),
+    // closing inline tag glued to a following word: "</a>Here". The whole
+    // element is matched so block-styled spans and elements that END with an
+    // opening quote (the quote hugs the next word by design) can be skipped.
+    re: new RegExp(`<(${INLINE})((?:\\s[^>]*)?)>([^<]*)</\\1>(?=[A-Za-z])`, 'g'),
     name: 'inline-tag→word collapse',
+    skip: (m) => BLOCK_STYLED_CLASSES.test(m[2]) || /[“‘"'(]$/.test(m[3]),
   },
 ];
 
@@ -37,6 +44,17 @@ const IN_TEXT = [
   { re: /[a-z][,;:][A-Za-z][a-z]{2}/g, name: 'punct collapse in text' },
 ];
 
+// Curly-quote/dash entities read as letters to the regexes above; decode them
+// so “Sarah M.,” doesn't get reported as a collapse.
+const decodeEntities = (text) =>
+  text
+    .replace(/&(l|r)squo;/g, (_, side) => (side === 'l' ? '‘' : '’'))
+    .replace(/&(l|r)dquo;/g, (_, side) => (side === 'l' ? '“' : '”'))
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+
 const hits = [];
 for (const file of htmlFiles(DIST)) {
   const page = path.relative(DIST, file);
@@ -44,8 +62,9 @@ for (const file of htmlFiles(DIST)) {
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '');
 
-  for (const { re, name } of CHECKS) {
+  for (const { re, name, skip } of CHECKS) {
     for (const m of html.matchAll(re)) {
+      if (skip?.(m)) continue;
       const ctx = html
         .slice(Math.max(0, m.index - 50), m.index + 60)
         .replace(/\s+/g, ' ');
@@ -54,7 +73,7 @@ for (const file of htmlFiles(DIST)) {
   }
 
   for (const tn of html.matchAll(TEXT_NODE_RE)) {
-    const text = tn[1];
+    const text = decodeEntities(tn[1]);
     if (!/[A-Za-z]/.test(text)) continue;
     for (const { re, name } of IN_TEXT) {
       for (const m of text.matchAll(re)) {

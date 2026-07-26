@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "import:instagram": "node scripts/import-instagram-catalog.mjs"
+    "import:instagram": "node scripts/import-instagram-catalog.mjs",
+    "post:add": "node scripts/add-instagram-post.mjs",
+    "qa": "astro build && node scripts/check-links.mjs && node scripts/check-text.mjs && node scripts/check-affiliates.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

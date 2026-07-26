@@ -1,5 +1,18 @@
+// Bulk (re-)import of a captured Instagram catalog. For adding a single new
+// post day-to-day, use scripts/add-instagram-post.mjs instead.
+// Usage: node scripts/import-instagram-catalog.mjs <browser-catalog.json>
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
+import {
+  ASSETS_DIRECTORY,
+  DATA_PATH,
+  cleanText,
+  categoryFromCaption,
+  snippetFromCaption,
+  sortPosts,
+  titleFromCaption,
+  toIsoDate,
+} from './lib/instagram.mjs';
 
 const inputPath = process.argv[2];
 
@@ -9,69 +22,20 @@ if (!inputPath) {
 }
 
 const catalog = JSON.parse(await readFile(inputPath, 'utf8'));
-const publicDirectory = join(process.cwd(), 'public', 'images', 'instagram');
-const dataPath = join(process.cwd(), 'src', 'data', 'instagram-posts.json');
 
-await mkdir(publicDirectory, { recursive: true });
+await mkdir(ASSETS_DIRECTORY, { recursive: true });
+
+// Hand-curated fields survive re-imports: keep each post's existing shopHref.
+const existingShopHrefs = new Map();
+try {
+  for (const post of JSON.parse(await readFile(DATA_PATH, 'utf8'))) {
+    if (post.shopHref) existingShopHrefs.set(post.id, post.shopHref);
+  }
+} catch {
+  // First import: no existing catalog.
+}
 
 const sourceFilename = (url) => basename(new URL(url).pathname);
-
-/**
- * Instagram occasionally exposes a lone UTF-16 surrogate in an emoji.
- * Site rule: no em-dashes anywhere in catalog text. Imports normalize them to
- * a comma (crude, but a human reviews and rewords after each import).
- */
-const cleanText = (value = '') =>
-  value
-    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '�')
-    .replace(/\s*—\s*/g, ', ');
-
-const truncate = (value, length) => {
-  const characters = Array.from(value);
-  return characters.length > length
-    ? `${characters.slice(0, length - 1).join('').trimEnd()}…`
-    : value;
-};
-
-const toIsoDate = (value) => {
-  const parsed = new Date(`${value} 12:00:00 UTC`);
-  if (Number.isNaN(parsed.valueOf())) throw new Error(`Could not parse date: ${value}`);
-  return parsed.toISOString().slice(0, 10);
-};
-
-const titleFromCaption = (caption) => {
-  const firstLine = caption.split(/\n+/).find((line) => line.trim())?.trim() ?? 'A look from Susanne';
-  return truncate(firstLine, 88);
-};
-
-const snippetFromCaption = (caption) => {
-  const withoutSignoff = caption
-    .replace(/\n+Xo,?\s*\n+Sus[\s\S]*$/i, '')
-    .replace(/\n+🔗[^\n]*/g, '')
-    .replace(/\n+#.*$/s, '')
-    .trim();
-  const paragraphs = withoutSignoff.split(/\n{2,}/).filter(Boolean);
-  const snippet = paragraphs.slice(0, 2).join(' ');
-  return truncate(snippet, 260);
-};
-
-const categoryFromCaption = (caption) => {
-  const text = caption.toLowerCase();
-  if (/vacation|travel|airport|turks|conference|packing|out of office/.test(text)) return 'travel';
-  if (/office|workwear|work outfit|in-office|company color|corporate/.test(text)) return 'office';
-  if (/easter|fourth of july|pride|birthday|anniversary|concert|cubs game|celebrat/.test(text)) {
-    return 'occasion';
-  }
-  if (/spring|summer|holiday/.test(text)) return 'seasonal';
-  if (/scarf|monochrome|color therapy|accessor/.test(text)) return 'color-and-accessories';
-  return 'everyday';
-};
-
-const shopRoutes = {
-  Davb0iDOqg3: '/looks/blush-and-cream-balloon-hem',
-  DaYNd4AOvbG: '/looks/red-eyelet-fourth-of-july',
-  DZclbaxONP5: '/looks/pastel-column-office-look',
-};
 
 const output = [];
 
@@ -87,7 +51,7 @@ for (const post of catalog) {
     const sourcePath = bundledByName.get(sourceName);
     const extension = extname(sourceName) || '.jpg';
     const filename = `${post.code}-${String(index + 1).padStart(2, '0')}${extension}`;
-    const destination = join(publicDirectory, filename);
+    const destination = join(ASSETS_DIRECTORY, filename);
 
     if (sourcePath) {
       await copyFile(sourcePath, destination);
@@ -125,14 +89,14 @@ for (const post of catalog) {
     caption: caption.trim(),
     snippet: snippetFromCaption(caption),
     instagramUrl: post.url,
-    shopHref: shopRoutes[post.code] ?? null,
+    shopHref: existingShopHrefs.get(post.code) ?? null,
     likes: Number(String(post.likes).replaceAll(',', '')) || 0,
     comments: Number(String(post.comments).replaceAll(',', '')) || 0,
     media,
   });
 }
 
-output.sort((a, b) => b.date.localeCompare(a.date));
-await writeFile(dataPath, `${JSON.stringify(output, null, 2)}\n`);
+sortPosts(output);
+await writeFile(DATA_PATH, `${JSON.stringify(output, null, 2)}\n`);
 
 console.log(`Imported ${output.length} posts and ${output.reduce((n, post) => n + post.media.length, 0)} media files.`);

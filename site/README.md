@@ -20,17 +20,35 @@ One-time asset scripts (already run; re-run only if inputs change):
 - `node scripts/prep-photos.mjs` — crops research screenshots into `src/assets/photos/`
 - `node scripts/make-og-image.mjs` — regenerates `public/og-default.jpg`
 
-## Refreshing the Instagram lookbook
+## Adding a new Instagram post (the everyday path)
 
-`npm run import:instagram <browser-catalog.json>` imports a captured post
-catalog: images land in `src/assets/instagram/` (Astro optimizes them at
-build) and post data in `src/data/instagram-posts.json`. After each import,
-hand-review the JSON: the importer flattens em-dashes crudely (site rule:
-none anywhere), and every `media[].alt` should be rewritten to describe
-what's actually visible (garments, colors, setting; 60–160 chars). Posts
-gain a "Shop this look piece by piece" link by setting `shopHref` to a
-`/looks/<slug>` page. The newest post with a `shopHref` automatically leads
-the /looks page as the featured edit.
+1. Write a small spec file (see the header comment in
+   `scripts/add-instagram-post.mjs` for the full shape): post code, date,
+   caption, likes/comments, and one entry per photo with real `alt` text
+   describing what's visible (garments, colors, setting; 60–160 chars).
+   Photos can be given as a CDN `url`, a local `file`, or pre-placed in
+   `src/assets/instagram/` as `<code>-01.jpg`.
+2. `npm run post:add <spec.json>` — downloads media, computes
+   title/snippet/category (override `category` in the spec when the guess
+   is wrong), and inserts the post into `src/data/instagram-posts.json`.
+3. Optional "Shop this look": add `"shop": { "slug": "my-look" }` to the
+   spec. The first run scaffolds `src/content/looks/my-look.md` as a draft;
+   fill in the TODOs and affiliate links, set `draft: false`, then re-run
+   the same command — the post's shop link goes live only once the page is
+   publishable, so a dead link can never ship.
+4. `npm run qa` — builds and verifies links, text, and affiliate hygiene.
+
+The newest post with a `shopHref` automatically leads /looks as the
+featured edit.
+
+## Full re-import (rare)
+
+`npm run import:instagram <browser-catalog.json>` re-imports a captured
+post catalog: images land in `src/assets/instagram/` and post data in
+`src/data/instagram-posts.json`. Hand-set `shopHref` values survive the
+re-import. Afterwards, hand-review the JSON: the importer flattens
+em-dashes crudely (site rule: none anywhere), and every `media[].alt`
+should be rewritten to describe what's actually visible.
 
 ## Where things live
 
