@@ -1,0 +1,162 @@
+---
+import { Image } from 'astro:assets';
+import { instagramPosts, resolveInstagramImage } from '../lib/instagram';
+
+interface Props {
+  /** How many looks to show. */
+  limit?: number;
+  /** Shoppable looks first: the strip is a funnel, not a feed dump. */
+  shoppableFirst?: boolean;
+}
+
+const { limit = 10, shoppableFirst = true } = Astro.props;
+
+const ordered = shoppableFirst
+  ? [...instagramPosts].sort(
+      (a, b) => Number(Boolean(b.shopHref)) - Number(Boolean(a.shopHref)),
+    )
+  : instagramPosts;
+const looks = ordered.slice(0, limit);
+---
+
+{/* Swipeable on touch, scrollable everywhere; every card lands in the
+    lookbook with that post already open. */}
+<div class="look-strip-wrap">
+  <ul class="look-strip" role="list" data-look-strip>
+    {
+      looks.map((post, index) => (
+        <li>
+          <a class="look-strip-card" href={`/looks#post-${post.id}`}>
+            <span class="look-strip-media">
+              <Image
+                src={resolveInstagramImage(post.media[0].src)}
+                alt={post.media[0].alt}
+                widths={[240, 420]}
+                sizes="(max-width: 640px) 62vw, 15rem"
+                loading={index < 3 ? 'eager' : 'lazy'}
+              />
+              {post.shopHref && <span class="look-strip-tag">Shoppable</span>}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+    <li>
+      <a class="look-strip-card look-strip-card--all" href="/looks">
+        <span class="look-strip-all">
+          See all {instagramPosts.length} looks <span aria-hidden="true">→</span>
+        </span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<style>
+  .look-strip-wrap {
+    position: relative;
+  }
+
+  .look-strip {
+    display: flex;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 1.25rem 0.75rem;
+    margin-inline: -1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .look-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .look-strip > li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .look-strip-card {
+    display: block;
+    width: 62vw;
+    max-width: 15rem;
+    text-decoration: none;
+  }
+
+  .look-strip-media {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--ivory);
+    box-shadow: var(--shadow-card);
+  }
+
+  .look-strip-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .look-strip-tag {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0.5rem;
+    color: #fffdf9;
+    background: var(--rose);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.6rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 1px 6px rgba(54, 44, 36, 0.3);
+  }
+
+  /* Final card: the way out of the strip and into the full lookbook. */
+  .look-strip-card--all .look-strip-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    aspect-ratio: 4 / 5;
+    padding: 1rem;
+    border: 1px dashed var(--blush);
+    border-radius: var(--radius);
+    color: var(--rose);
+    background: var(--rose-soft);
+    font-size: 0.78rem;
+    font-weight: 620;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .look-strip-media,
+    .look-strip-all {
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow var(--transition);
+    }
+
+    .look-strip-card:hover .look-strip-media,
+    .look-strip-card:focus-visible .look-strip-media,
+    .look-strip-card:hover .look-strip-all {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lift);
+    }
+
+    .look-strip-card:active .look-strip-media {
+      transform: scale(0.985);
+    }
+  }
+
+  @media (min-width: 641px) {
+    .look-strip-card {
+      width: 15rem;
+    }
+  }
+</style>

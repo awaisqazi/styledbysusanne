@@ -7,10 +7,12 @@ import ServiceFamilyCard from '../components/ServiceFamilyCard.astro';
 import EmailCapture from '../components/EmailCapture.astro';
 import FaqItem from '../components/FaqItem.astro';
 import CtaBand from '../components/CtaBand.astro';
+import LookStrip from '../components/LookStrip.astro';
 import { SITE } from '../lib/site';
 import { FAMILIES, STANDARD_STEPS } from '../data/services';
 import { FAQS } from '../data/faq';
 import { getPublishedLooks } from '../lib/looks';
+import { instagramPosts } from '../lib/instagram';
 
 import heroPhoto from '../assets/photos/look-blush-neutrals.jpg';
 import susannePhoto from '../assets/photos/look-color-office.jpg';
@@ -18,6 +20,8 @@ import susannePhoto from '../assets/photos/look-color-office.jpg';
 const looks = await getPublishedLooks();
 const featuredLook = looks.find((l) => l.data.featured) ?? looks[0];
 const homeFaqs = FAQS.filter((f) => f.featured);
+const lookCount = instagramPosts.length;
+const shoppableCount = instagramPosts.filter((post) => post.shopHref).length;
 
 const schema = {
   '@context': 'https://schema.org',
@@ -45,20 +49,21 @@ const schema = {
       <div class="hero-copy" data-reveal>
         <p class="eyebrow">Chicago + virtual personal styling</p>
         <h1>
-          Your wardrobe should feel like the person you&rsquo;re <em
-            class="serif-italic">becoming</em>.
+          Start with the <em class="serif-italic">looks</em>. Stay for the
+          closet behind them.
         </h1>
         <p class="lede">
-          Thoughtful personal styling that brings clarity to your closet,
-          confidence to your choices, and ease to every morning.
+          {lookCount} real outfits from my own week, each one broken down so you
+          can see why it works. Browse them, shop the pieces, and when you want
+          this thinking applied to your closet, that is exactly what I do.
         </p>
         <div class="hero-actions">
-          <a class="btn btn--primary" href="/book">Book a Style Conversation</a>
-          <a class="btn btn--outline" href="#paths">Find My Best Service</a>
+          <a class="btn btn--primary" href="/looks">Shop the Looks</a>
+          <a class="btn btn--outline" href="#paths">Work With Susanne</a>
         </div>
         <p class="hero-note">
-          Every engagement starts with a complimentary 30-minute conversation
-          · {SITE.location}
+          Free to browse · {shoppableCount} looks broken down piece by piece ·
+          {SITE.location}
         </p>
       </div>
       <div class="hero-media">
@@ -80,8 +85,79 @@ const schema = {
     </div>
   </section>
 
+  <!-- ================================================= Looks, up front -->
+  <section class="section looks-rail" aria-labelledby="looks-rail-heading">
+    <div class="container">
+      <div class="looks-rail-head">
+        <div>
+          <p class="eyebrow">Fresh from the feed</p>
+          <h2 id="looks-rail-heading">
+            Real outfits, <em class="serif-italic">swipe through them</em>
+          </h2>
+        </div>
+        <a class="text-link looks-rail-all" href="/looks">See the full lookbook</a>
+      </div>
+    </div>
+    <div class="container">
+      <LookStrip limit={10} />
+      <p class="looks-rail-note">
+        Tap any look for the full styling note, every photo, and the pieces
+        broken down where I have them. Some product links are affiliate links: <a
+          href="/policies/affiliate-disclosure">how that works</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================== Featured look -->
+  {
+    featuredLook && (
+      <section class="section section--ivory featured-look">
+        <div class="container featured-grid">
+          <div class="featured-media">
+            <div class="arch-frame featured-photo">
+              <Image
+                src={featuredLook.data.image}
+                alt={featuredLook.data.imageAlt}
+                widths={[480, 720, 1040]}
+                sizes="(max-width: 900px) 88vw, 40vw"
+              />
+            </div>
+          </div>
+          <div class="featured-copy">
+            <p class="eyebrow">From my looks to your closet</p>
+            <h2>
+              The looks are the free part. <em class="serif-italic">Your</em> closet
+              is the work.
+            </h2>
+            <p class="lede">
+              Every outfit I post comes from the same thinking: find the
+              formula, repeat it, stop negotiating with your closet at 7am.
+              Here is one worked example, and the services below do exactly
+              this with what you already own.
+            </p>
+            <div class="featured-why card">
+              <p class="featured-why-label">Why it works</p>
+              <p>{featuredLook.data.whyItWorks}</p>
+            </div>
+            <div class="featured-actions">
+              <a class="btn btn--primary" href="#paths">Find My Best Service</a>
+              <a class="btn btn--outline" href={`/looks/${featuredLook.id}`}>
+                See This Look
+              </a>
+            </div>
+            <p class="featured-disclosure">
+              Shoppable pages may contain affiliate links: <a
+                href="/policies/affiliate-disclosure">how that works</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {/* Reads as the lead-in to the paths below, so it shares their background. */}
   <!-- ============================================= Problem recognition -->
-  <section class="section section--ivory problems">
+  <section class="section problems problems--lead">
     <div class="container">
       <ul class="problems-list" role="list">
         <li>
@@ -98,9 +174,8 @@ const schema = {
         </li>
       </ul>
       <p class="problems-outro">
-        If any of those sound familiar, you’re exactly who I work with. <a
-          class="text-link"
-          href="#paths">Choose your path</a>
+        If any of those sound familiar, the looks above are the proof and the
+        services below are the fix. <a class="text-link" href="#paths">Choose your path</a>
       </p>
     </div>
   </section>
@@ -194,47 +269,6 @@ const schema = {
       </p>
     </div>
   </section>
-
-  <!-- ================================================== Featured look -->
-  {
-    featuredLook && (
-      <section class="section section--ivory featured-look">
-        <div class="container featured-grid">
-          <div class="featured-media">
-            <div class="arch-frame featured-photo">
-              <Image
-                src={featuredLook.data.image}
-                alt={featuredLook.data.imageAlt}
-                widths={[480, 720, 1040]}
-                sizes="(max-width: 900px) 88vw, 40vw"
-              />
-            </div>
-          </div>
-          <div class="featured-copy">
-            <p class="eyebrow">Featured shoppable look</p>
-            <h2>{featuredLook.data.title}</h2>
-            <p class="lede">{featuredLook.data.teaser}</p>
-            <div class="featured-why card">
-              <p class="featured-why-label">Why it works</p>
-              <p>{featuredLook.data.whyItWorks}</p>
-            </div>
-            <div class="featured-actions">
-              <a class="btn btn--rose" href={`/looks/${featuredLook.id}`}>
-                Shop This Look
-              </a>
-              <a class="btn btn--outline" href="/looks">
-                Browse All Looks
-              </a>
-            </div>
-            <p class="featured-disclosure">
-              Shoppable pages may contain affiliate links: <a
-                href="/policies/affiliate-disclosure">how that works</a>.
-            </p>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   <!-- =================================================== Meet Susanne -->
   <section class="section meet">
@@ -357,7 +391,41 @@ const schema = {
     z-index: -1;
   }
 
+  /* Looks rail */
+  .looks-rail {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  .looks-rail-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem 1.5rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .looks-rail-head h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 1.4rem + 1.6vw, 2.6rem);
+  }
+
+  .looks-rail-head h2 em {
+    color: var(--rose);
+  }
+
+  .looks-rail-note {
+    max-width: 46em;
+    margin: 1.1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--umber);
+  }
+
   /* Problems */
+  .problems--lead {
+    padding-bottom: 0;
+  }
+
   .problems-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
