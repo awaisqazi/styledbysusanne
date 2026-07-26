@@ -12,6 +12,7 @@ import {
   resolveInstagramImage,
   similarToPost,
 } from '../../lib/instagram';
+import affiliateLinks from '../../data/affiliate-links.json';
 
 export async function getStaticPaths() {
   const looks = await getPublishedLooks();
@@ -40,8 +41,22 @@ interface Props {
 const { entry, newer, older, newerWraps, olderWraps } = Astro.props;
 const { Content } = await render(entry);
 
-const { title, date, category, image, imageAlt, teaser, whyItWorks, pieces, similar, service } =
-  entry.data;
+const { title, date, category, image, imageAlt, teaser, whyItWorks, similar, service } = entry.data;
+
+/**
+ * Affiliate links come from three layers, strongest last: frontmatter url,
+ * then links baked from the portal by `npm run sync:affiliates`, and at
+ * runtime a small script hydrates anything saved in the portal since the
+ * last deploy.
+ */
+const bakedLinks = (affiliateLinks as Record<string, Record<string, { url?: string; source?: string }>>)[
+  entry.id
+] ?? {};
+const pieces = entry.data.pieces.map((piece, index) => ({
+  ...piece,
+  url: piece.url ?? bakedLinks[index]?.url,
+  source: piece.source ?? bakedLinks[index]?.source,
+}));
 
 const categoryLabel = LOOK_CATEGORIES[category];
 const dateLabel = date.toLocaleDateString('en-US', {
@@ -110,9 +125,9 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
           pieces.length > 0 && (
             <section class="look-shop" aria-labelledby="exact-pieces">
               <h2 id="exact-pieces">Shop the exact pieces</h2>
-              <ul class="piece-list" role="list">
-                {pieces.map((piece) => (
-                  <li class="piece" data-reveal>
+              <ul class="piece-list" role="list" data-look-pieces={entry.id}>
+                {pieces.map((piece, index) => (
+                  <li class="piece" data-reveal data-piece-index={index}>
                     {piece.url ? (
                       <a
                         class="piece-card piece-card--link"
@@ -302,6 +317,62 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
 </Base>
 
 <script>
+  import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../lib/supabase';
+
+  // Affiliate links saved in the /admin portal since the last deploy: fetch
+  // them and upgrade "coming soon" piece cards to live links. Progressive
+  // enhancement: the static page already shows every baked link.
+  const pieceList = document.querySelector<HTMLElement>('[data-look-pieces]');
+
+  if (pieceList) {
+    const slug = pieceList.dataset.lookPieces!;
+    fetch(
+      `${SUPABASE_URL}/rest/v1/affiliate_links?look_slug=eq.${encodeURIComponent(slug)}&select=piece_index,url,source`,
+      { headers: { apikey: SUPABASE_PUBLISHABLE_KEY } },
+    )
+      .then((response) => (response.ok ? response.json() : []))
+      .then((rows: { piece_index: number; url: string; source: string | null }[]) => {
+        for (const row of rows) {
+          if (!/^https:\/\//.test(row.url)) continue;
+          const item = pieceList.querySelector(`[data-piece-index="${row.piece_index}"]`);
+          const card = item?.querySelector('.piece-card');
+          if (!item || !card) continue;
+
+          if (card instanceof HTMLAnchorElement) {
+            card.href = row.url;
+            continue;
+          }
+
+          const link = document.createElement('a');
+          link.className = 'piece-card piece-card--link';
+          link.href = row.url;
+          link.target = '_blank';
+          link.rel = 'nofollow sponsored noopener';
+          const label = card.querySelector('.piece-label');
+          if (label) link.append(label);
+          if (row.source) {
+            const tag = document.createElement('span');
+            tag.className = 'piece-tag';
+            tag.textContent = row.source;
+            link.append(tag);
+          }
+          const arrow = document.createElement('span');
+          arrow.className = 'piece-arrow';
+          arrow.setAttribute('aria-hidden', 'true');
+          arrow.textContent = '→';
+          link.append(arrow);
+          card.replaceWith(link);
+        }
+        if (rows.length) {
+          const cta = document.querySelector('[data-mobile-cta] a');
+          if (cta) cta.textContent = 'Shop This Look ↓';
+        }
+      })
+      .catch(() => {
+        // Offline or blocked: the static page stays fully usable.
+      });
+  }
+
   // Sticky shop bar, mobile only: slides in once the visitor has scrolled
   // past ~55% of the first viewport, slides away again near the top.
   // Progressive enhancement: without JS the bar simply never appears.

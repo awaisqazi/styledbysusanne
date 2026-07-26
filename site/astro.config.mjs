@@ -9,5 +9,10 @@ export default defineConfig({
   // and JSON-LD all agree, and GitHub Pages serves /about from about.html.
   trailingSlash: 'never',
   build: { format: 'file' },
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // The affiliate admin portal is noindexed and stays out of the sitemap.
+      filter: (page) => !page.includes('/admin'),
+    }),
+  ],
 });

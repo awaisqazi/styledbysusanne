@@ -41,6 +41,30 @@ One-time asset scripts (already run; re-run only if inputs change):
 The newest post with a `shopHref` automatically leads /looks as the
 featured edit.
 
+## Affiliate links: the /admin portal
+
+`/admin` (not linked anywhere, noindexed, out of the sitemap) lists every
+post with its detected elements and, for shoppable looks, one input per
+piece. Enter the portal password, paste a product link, hit Save:
+
+- Amazon links get the `susannefari09-20` Associates tag automatically.
+- The link is live on the look page within seconds (pages hydrate saved
+  links from Supabase at runtime).
+- Before the next deploy, run `npm run sync:affiliates` to bake saved
+  links into `src/data/affiliate-links.json` (commit the diff), so links
+  are part of the crawlable HTML and survive the store being offline.
+
+Storage is the "Styled By Susanne" Supabase project (`src/data/supabase.json`
+holds the URL and the browser-safe publishable key). Writes only happen
+through password-checked database functions; the password lives as a
+bcrypt hash in the private schema, and direct table writes are blocked by
+RLS. Frontmatter `url`s still win over everything, so hand-managed links
+keep working.
+
+Element tags also power the "More looks with these elements" module on
+look pages; keep them accurate when adding posts (`elements` in the
+post:add spec).
+
 ## Full re-import (rare)
 
 `npm run import:instagram <browser-catalog.json>` re-imports a captured
@@ -84,8 +108,8 @@ should be rewritten to describe what's actually visible.
 - [ ] Replace provisional imagery (currently cropped from Instagram
       screenshots) with the professional shoot from the strategy plan's
       photography list.
-- [ ] Fill in real affiliate `url`s on look pages (Amazon / Mavely). Keep the
-      Amazon Associates tag `susannefari09-20` on Amazon links; existing
+- [ ] Fill in real affiliate links via the `/admin` portal (Amazon / Mavely).
+      The portal keeps the `susannefari09-20` tag on Amazon links; existing
       Mavely deep links can be reused as-is (see `../LINKTREE_AUDIT.md`).
 - [ ] Connect an email provider and set `EMAIL_SIGNUP_ACTION` in
       `src/lib/site.ts` (the signup forms activate automatically).

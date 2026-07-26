@@ -1,0 +1,512 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { getPublishedLooks } from '../lib/looks';
+import { instagramPosts, resolveInstagramImage, elementLabel } from '../lib/instagram';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../lib/supabase';
+import { LOOK_CATEGORIES } from '../lib/looks';
+
+/**
+ * Internal affiliate-link portal. Not linked from anywhere, noindexed, and
+ * excluded from the sitemap. The password is never in this file: the page
+ * asks Supabase to verify it, and every save goes through a password-checked
+ * database function. Saved links go live on look pages within seconds (they
+ * hydrate from Supabase) and get baked into the repo by
+ * `npm run sync:affiliates` at the next build.
+ */
+const looks = await getPublishedLooks();
+const looksBySlug = new Map(looks.map((look) => [look.id, look]));
+
+const rows = instagramPosts.map((post) => {
+  const slug = post.shopHref?.replace('/looks/', '') ?? null;
+  const look = slug ? looksBySlug.get(slug) : undefined;
+  return { post, slug: look ? slug : null, look };
+});
+
+const shoppableCount = rows.filter((row) => row.look).length;
+---
+
+<Base title="Affiliate Admin" description="Internal affiliate link portal." bare noindex>
+  <div class="admin">
+    <div class="container">
+      <header class="admin-head">
+        <p class="eyebrow">Internal tool</p>
+        <h1>Affiliate link <em class="serif-italic">portal</em></h1>
+        <p class="admin-sub">
+          {instagramPosts.length} posts · {shoppableCount} shoppable looks.
+          Saved links appear on the live look pages within seconds; run
+          <code>npm run sync:affiliates</code> before the next deploy to bake
+          them into the repo. Amazon links get the
+          <code>susannefari09-20</code> tag automatically.
+        </p>
+        <p class="admin-back"><a href="/">← Back to the site</a></p>
+      </header>
+
+      <!-- ------------------------------------------------ password gate -->
+      <form class="admin-gate card" data-gate>
+        <label for="admin-password">Portal password</label>
+        <div class="admin-gate-row">
+          <input
+            id="admin-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <button class="btn btn--rose" type="submit">Unlock</button>
+        </div>
+        <p class="admin-gate-status" data-gate-status role="status"></p>
+      </form>
+
+      <!-- ------------------------------------------------------- posts -->
+      <div class="admin-list" data-admin-list hidden>
+        {
+          rows.map(({ post, slug, look }) => (
+            <article class="admin-post card" data-look-slug={slug}>
+              <div class="admin-media">
+                <Image
+                  src={resolveInstagramImage(post.media[0].src)}
+                  alt={post.media[0].alt}
+                  widths={[240, 480]}
+                  sizes="(max-width: 700px) 92vw, 220px"
+                  loading="lazy"
+                />
+                <span class="admin-category">{LOOK_CATEGORIES[post.category]}</span>
+              </div>
+              <div class="admin-body">
+                <h2 class="admin-title">{post.title}</h2>
+                <p class="admin-meta">
+                  {post.date} · <a href={post.instagramUrl} target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+                  {slug && (
+                    <>
+                      {' · '}
+                      <a href={`/looks/${slug}`} target="_blank">Look page ↗</a>
+                    </>
+                  )}
+                </p>
+                <ul class="admin-elements" role="list" aria-label="Detected elements">
+                  {post.elements.map((tag) => (
+                    <li>{elementLabel(tag)}</li>
+                  ))}
+                </ul>
+
+                {look ? (
+                  <ul class="admin-pieces" role="list">
+                    {look.data.pieces.map((piece, index) => (
+                      <li
+                        class="admin-piece"
+                        data-piece
+                        data-piece-index={index}
+                        data-baked-url={piece.url ?? ''}
+                      >
+                        <span class="admin-piece-label">{piece.label}</span>
+                        <div class="admin-piece-row">
+                          <input
+                            type="url"
+                            inputmode="url"
+                            placeholder="https:// affiliate link"
+                            aria-label={`Affiliate link for ${piece.label}`}
+                            data-piece-url
+                          />
+                          <button type="button" class="btn btn--outline admin-save" data-piece-save>
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            class="admin-clear"
+                            data-piece-clear
+                            aria-label={`Clear saved link for ${piece.label}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p class="admin-piece-status" data-piece-status role="status"></p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p class="admin-noshop">
+                    No shop page yet. Create one with
+                    <code>npm run post:add</code> (add a <code>shop.slug</code> to the spec)
+                    and its pieces will appear here.
+                  </p>
+                )}
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script
+  is:inline
+  define:vars={{ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_PUBLISHABLE_KEY }}
+>
+  const AMAZON_TAG = 'susannefari09-20';
+  const gate = document.querySelector('[data-gate]');
+  const gateStatus = document.querySelector('[data-gate-status]');
+  const list = document.querySelector('[data-admin-list]');
+  let password = sessionStorage.getItem('sbs-admin-password') || '';
+
+  const api = (path, options = {}) =>
+    fetch(`${supabaseUrl}${path}`, {
+      ...options,
+      headers: {
+        apikey: supabaseKey,
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    });
+
+  const rpc = (fn, args) =>
+    api(`/rest/v1/rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) }).then(
+      async (response) => {
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.message || `HTTP ${response.status}`);
+        }
+        return response.status === 204 ? null : response.json();
+      },
+    );
+
+  const withAffiliateTag = (raw) => {
+    try {
+      const url = new URL(raw);
+      if (/(^|\.)amazon\.[a-z.]+$/.test(url.hostname) && url.searchParams.get('tag') !== AMAZON_TAG) {
+        url.searchParams.set('tag', AMAZON_TAG);
+      }
+      return url.toString();
+    } catch {
+      return raw;
+    }
+  };
+
+  const loadLinks = async () => {
+    const response = await api('/rest/v1/affiliate_links?select=look_slug,piece_index,url');
+    const links = await response.json();
+    const byKey = new Map(links.map((row) => [`${row.look_slug}/${row.piece_index}`, row.url]));
+    for (const postCard of document.querySelectorAll('[data-look-slug]')) {
+      const slug = postCard.dataset.lookSlug;
+      if (!slug) continue;
+      for (const piece of postCard.querySelectorAll('[data-piece]')) {
+        const input = piece.querySelector('[data-piece-url]');
+        const status = piece.querySelector('[data-piece-status]');
+        const saved = byKey.get(`${slug}/${piece.dataset.pieceIndex}`);
+        const baked = piece.dataset.bakedUrl;
+        input.value = saved || baked || '';
+        piece.classList.toggle('has-link', Boolean(saved || baked));
+        status.textContent = saved
+          ? 'Live from the portal'
+          : baked
+            ? 'Baked into the site'
+            : 'No link yet: page shows "coming soon"';
+      }
+    }
+  };
+
+  const unlock = async (candidate) => {
+    gateStatus.textContent = 'Checking…';
+    try {
+      const ok = await rpc('admin_login', { _password: candidate });
+      if (ok !== true) {
+        gateStatus.textContent = 'Wrong password.';
+        sessionStorage.removeItem('sbs-admin-password');
+        return;
+      }
+      password = candidate;
+      sessionStorage.setItem('sbs-admin-password', candidate);
+      gate.hidden = true;
+      list.hidden = false;
+      gateStatus.textContent = '';
+      await loadLinks();
+    } catch (error) {
+      gateStatus.textContent = `Could not reach the link store: ${error.message}`;
+    }
+  };
+
+  gate.addEventListener('submit', (event) => {
+    event.preventDefault();
+    unlock(gate.elements.password.value);
+  });
+
+  if (password) unlock(password);
+
+  list.addEventListener('click', async (event) => {
+    const save = event.target.closest('[data-piece-save]');
+    const clear = event.target.closest('[data-piece-clear]');
+    if (!save && !clear) return;
+
+    const piece = event.target.closest('[data-piece]');
+    const postCard = event.target.closest('[data-look-slug]');
+    const input = piece.querySelector('[data-piece-url]');
+    const status = piece.querySelector('[data-piece-status]');
+    const args = {
+      _password: password,
+      _look_slug: postCard.dataset.lookSlug,
+      _piece_index: Number(piece.dataset.pieceIndex),
+    };
+
+    try {
+      if (save) {
+        const url = withAffiliateTag(input.value.trim());
+        if (!/^https:\/\//.test(url)) {
+          status.textContent = 'Link must start with https://';
+          return;
+        }
+        input.value = url;
+        status.textContent = 'Saving…';
+        await rpc('save_affiliate_link', {
+          ...args,
+          _label: piece.querySelector('.admin-piece-label').textContent.trim(),
+          _url: url,
+        });
+        piece.classList.add('has-link');
+        status.textContent = 'Saved: live on the look page';
+      } else {
+        status.textContent = 'Clearing…';
+        await rpc('delete_affiliate_link', args);
+        input.value = piece.dataset.bakedUrl || '';
+        piece.classList.toggle('has-link', Boolean(piece.dataset.bakedUrl));
+        status.textContent = piece.dataset.bakedUrl
+          ? 'Cleared: back to the baked link'
+          : 'Cleared: page shows "coming soon"';
+      }
+    } catch (error) {
+      status.textContent = `Failed: ${error.message}`;
+    }
+  });
+</script>
+
+<style>
+  .admin {
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem) var(--section-pad);
+    min-height: 100vh;
+  }
+
+  .admin-head {
+    max-width: 46rem;
+    margin-bottom: 2rem;
+  }
+
+  .admin-head h1 em {
+    color: var(--rose);
+  }
+
+  .admin-sub {
+    color: var(--umber);
+    font-size: 0.95rem;
+  }
+
+  .admin-sub code,
+  .admin-noshop code {
+    font-size: 0.85em;
+    background: var(--ivory);
+    border: 1px solid var(--line-soft);
+    border-radius: 0.35rem;
+    padding: 0.08em 0.4em;
+  }
+
+  .admin-back {
+    font-size: 0.85rem;
+  }
+
+  /* Gate */
+  .admin-gate {
+    max-width: 26rem;
+    padding: 1.5rem;
+  }
+
+  .admin-gate label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 0.6rem;
+  }
+
+  .admin-gate-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .admin-gate input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  .admin-gate-status {
+    min-height: 1.2em;
+    color: var(--umber);
+    font-size: 0.85rem;
+    margin: 0.7rem 0 0;
+  }
+
+  /* Post cards */
+  .admin-list {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .admin-post {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 1.4rem;
+    padding: 1.4rem;
+  }
+
+  .admin-media {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--ivory);
+  }
+
+  .admin-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .admin-category {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    background: var(--rose-soft);
+    color: var(--rose-deep);
+    border-radius: 999px;
+    padding: 0.22rem 0.6rem;
+    font-size: 0.62rem;
+    font-weight: 620;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .admin-title {
+    font-size: 1.15rem;
+    line-height: 1.3;
+    margin-bottom: 0.3rem;
+  }
+
+  .admin-meta {
+    color: var(--umber);
+    font-size: 0.8rem;
+    margin-bottom: 0.7rem;
+  }
+
+  /* Element chips: the "what's in this photo" highlights */
+  .admin-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+  }
+
+  .admin-elements li {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--espresso);
+    background: var(--ivory);
+    border: 1px solid var(--gold-hairline);
+    border-radius: 999px;
+    padding: 0.22rem 0.62rem;
+  }
+
+  /* Piece rows */
+  .admin-pieces {
+    list-style: none;
+    display: grid;
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0.9rem 0 0;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .admin-piece-label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 550;
+    color: var(--espresso);
+    margin-bottom: 0.35rem;
+  }
+
+  .admin-piece.has-link .admin-piece-label::before {
+    content: '● ';
+    color: var(--rose);
+  }
+
+  .admin-piece-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .admin-piece-row input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  .admin-save {
+    padding: 0.5rem 1rem;
+    font-size: 0.72rem;
+  }
+
+  .admin-clear {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--umber);
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8rem;
+  }
+
+  .admin-clear:hover {
+    color: var(--rose-deep);
+    border-color: var(--rose);
+  }
+
+  .admin-piece-status {
+    min-height: 1em;
+    font-size: 0.75rem;
+    color: var(--umber);
+    margin: 0.3rem 0 0;
+  }
+
+  .admin-noshop {
+    color: var(--umber);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 0.9rem;
+    margin: 0;
+  }
+
+  @media (max-width: 700px) {
+    .admin-post {
+      grid-template-columns: 1fr;
+    }
+
+    .admin-media {
+      max-width: 14rem;
+    }
+  }
+</style>

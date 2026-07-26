@@ -12,6 +12,7 @@
     "astro": "astro",
     "import:instagram": "node scripts/import-instagram-catalog.mjs",
     "post:add": "node scripts/add-instagram-post.mjs",
+    "sync:affiliates": "node scripts/sync-affiliates.mjs",
     "qa": "astro build && node scripts/check-links.mjs && node scripts/check-text.mjs && node scripts/check-affiliates.mjs"
   },
   "dependencies": {

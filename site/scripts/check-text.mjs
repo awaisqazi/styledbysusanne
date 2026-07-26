@@ -60,7 +60,9 @@ for (const file of htmlFiles(DIST)) {
   const page = path.relative(DIST, file);
   let html = readFileSync(file, 'utf8')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '');
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    // Code snippets legitimately contain "sync:affiliates"-style text.
+    .replace(/<(code|pre)[\s\S]*?<\/\1>/gi, '');
 
   for (const { re, name, skip } of CHECKS) {
     for (const m of html.matchAll(re)) {
