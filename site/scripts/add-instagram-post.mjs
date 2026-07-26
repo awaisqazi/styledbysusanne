@@ -14,6 +14,8 @@
 //   "comments": 3,
 //   "caption": "Full caption\n\nwith paragraphs…",
 //   "category": "occasion",             // optional; guessed from caption if omitted
+//   "elements": ["red", "stripes", "brooch"],  // what's visible; powers similar-looks
+//                                       // (see existing posts for the vocabulary)
 //   "media": [
 //     { "url": "https://…cdninstagram…jpg", "alt": "What the photo shows" },
 //     { "file": "/absolute/or/relative.jpg", "alt": "…" }
@@ -128,8 +130,15 @@ const entry = {
   shopHref,
   likes: Number(spec.likes) || 0,
   comments: Number(spec.comments) || 0,
+  elements: Array.isArray(spec.elements) ? spec.elements : [],
   media,
 };
+
+if (entry.elements.length === 0) {
+  console.warn(
+    'Warning: no "elements" tags in the spec; the post will sit out the similar-looks module until tagged.',
+  );
+}
 
 const posts = JSON.parse(await readFile(DATA_PATH, 'utf8'));
 const existingIndex = posts.findIndex((post) => post.id === entry.id);

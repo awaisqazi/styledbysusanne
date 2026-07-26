@@ -6,6 +6,12 @@ import EmailCapture from '../../components/EmailCapture.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Sparkle from '../../components/Sparkle.astro';
 import { getPublishedLooks, LOOK_CATEGORIES } from '../../lib/looks';
+import {
+  elementLabel,
+  postForLook,
+  resolveInstagramImage,
+  similarToPost,
+} from '../../lib/instagram';
 
 export async function getStaticPaths() {
   const looks = await getPublishedLooks();
@@ -46,6 +52,10 @@ const dateLabel = date.toLocaleDateString('en-US', {
 
 /** Hide prev/next when there is only one published look. */
 const hasNav = newer.id !== entry.id;
+
+/** Element-tag matches from the Instagram catalog ("similar looks"). */
+const sourcePost = postForLook(entry.id);
+const relatedPosts = sourcePost ? similarToPost(sourcePost, 3) : [];
 
 /** Sticky mobile CTA: promise shopping only when a piece actually links out. */
 const hasShoppablePieces = pieces.some((piece) => piece.url);
@@ -156,6 +166,48 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
                         </span>
                       </div>
                     )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          relatedPosts.length > 0 && (
+            <section class="look-shop look-related" aria-labelledby="related-looks">
+              <h2 id="related-looks">More looks with these elements</h2>
+              <p class="look-related-lede">
+                Pulled from the lookbook because they share pieces with this
+                outfit, matched by what's actually in the photos.
+              </p>
+              <ul class="related-list" role="list">
+                {relatedPosts.map(({ post, shared }) => (
+                  <li data-reveal>
+                    <a
+                      class="related-card"
+                      href={post.shopHref ?? `/looks#post-${post.id}`}
+                    >
+                      <div class="related-thumb">
+                        <Image
+                          src={resolveInstagramImage(post.media[0].src)}
+                          alt={post.media[0].alt}
+                          widths={[220, 440]}
+                          sizes="(max-width: 640px) 30vw, 200px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div class="related-body">
+                        <p class="related-title">{post.title}</p>
+                        <p class="related-shared">
+                          {shared.slice(0, 3).map(elementLabel).join(' · ')}
+                        </p>
+                        <p class="related-cta">
+                          {post.shopHref ? 'Shop this look' : 'See it in the lookbook'}{' '}
+                          <span aria-hidden="true">→</span>
+                        </p>
+                      </div>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -464,6 +516,111 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
     font-size: 0.98rem;
     color: var(--umber);
     margin: 0;
+  }
+
+  /* More looks with these elements */
+  .look-related-lede {
+    color: var(--umber);
+    font-size: 0.9rem;
+    margin: -0.2rem 0 1.1rem;
+  }
+
+  .related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: border-color var(--transition), box-shadow var(--transition),
+      transform var(--transition);
+  }
+
+  .related-card:hover,
+  .related-card:focus-visible {
+    border-color: var(--blush);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+
+  .related-thumb {
+    aspect-ratio: 4 / 5;
+    background: var(--ivory);
+  }
+
+  .related-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .related-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem 0.95rem 1rem;
+  }
+
+  .related-title {
+    color: var(--espresso);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .related-shared {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--umber);
+    font-size: 0.86rem;
+    margin: 0;
+  }
+
+  .related-cta {
+    margin: auto 0 0;
+    color: var(--rose);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
+    .related-list {
+      grid-template-columns: 1fr;
+    }
+
+    .related-card {
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    .related-thumb {
+      flex: 0 0 6.5rem;
+      aspect-ratio: 4 / 5;
+    }
+
+    .related-body {
+      padding: 0.7rem 0.85rem;
+    }
   }
 
   /* Make it yours */

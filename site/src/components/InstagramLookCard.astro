@@ -1,28 +1,7 @@
 ---
 import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
-import { LOOK_CATEGORIES, type LookCategory } from '../lib/looks';
-
-interface InstagramMedia {
-  src: string;
-  alt: string;
-}
-
-interface InstagramPost {
-  id: string;
-  title: string;
-  date: string;
-  category: LookCategory;
-  kind: 'post' | 'reel';
-  location: string | null;
-  caption: string;
-  snippet: string;
-  instagramUrl: string;
-  shopHref: string | null;
-  likes: number;
-  comments: number;
-  media: InstagramMedia[];
-}
+import { LOOK_CATEGORIES } from '../lib/looks';
+import { resolveInstagramImage as resolveImage, type InstagramPost } from '../lib/instagram';
 
 interface Props {
   post: InstagramPost;
@@ -33,26 +12,6 @@ interface Props {
 
 const { post, eager = false, variant = 'grid' } = Astro.props;
 const featured = variant === 'featured';
-
-/**
- * Catalog images live in src/assets/instagram so they flow through Astro's
- * image pipeline (responsive srcset + modern formats). JSON `src` values are
- * matched by filename, so the stored path prefix doesn't matter.
- */
-const catalogImages = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/instagram/*.{jpg,jpeg,png,webp}',
-  { eager: true },
-);
-const imagesByName = new Map(
-  Object.entries(catalogImages).map(([path, module]) => [path.split('/').pop()!, module.default]),
-);
-
-const resolveImage = (src: string): ImageMetadata => {
-  const name = src.split('/').pop()!;
-  const image = imagesByName.get(name);
-  if (!image) throw new Error(`Instagram catalog image not found in src/assets/instagram: ${name}`);
-  return image;
-};
 
 const dateLabel = new Date(`${post.date}T12:00:00Z`).toLocaleDateString('en-US', {
   month: 'short',

@@ -3,14 +3,8 @@ import Base from '../../layouts/Base.astro';
 import InstagramLookCard from '../../components/InstagramLookCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Sparkle from '../../components/Sparkle.astro';
-import instagramCatalog from '../../data/instagram-posts.json';
+import { instagramPosts } from '../../lib/instagram';
 import { LOOK_CATEGORIES, type LookCategory } from '../../lib/looks';
-
-const instagramPosts = instagramCatalog.map((post) => ({
-  ...post,
-  category: post.category as LookCategory,
-  kind: post.kind as 'post' | 'reel',
-}));
 
 /** Newest post with a full piece-by-piece shopping edit leads the page. */
 const featuredPost = instagramPosts.find((post) => post.shopHref) ?? instagramPosts[0];
@@ -55,7 +49,11 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
   </section>
 
   <!-- ==================================================== Featured edit -->
-  <section class="section looks-featured" aria-labelledby="featured-heading">
+  <section
+    class="section looks-featured"
+    aria-labelledby="featured-heading"
+    id={`post-${featuredPost.id}`}
+  >
     <div class="container">
       <div class="looks-featured-head">
         <p class="eyebrow" id="featured-heading">Fresh from the feed</p>
@@ -119,7 +117,7 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
       <ul class="instagram-grid" role="list">
         {
           gridPosts.map((post, index) => (
-            <li data-instagram-category={post.category}>
+            <li data-instagram-category={post.category} id={`post-${post.id}`}>
               <InstagramLookCard post={post} eager={index < 3} />
             </li>
           ))
@@ -219,6 +217,33 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     });
 
     apply();
+
+    // Deep links from look pages (#post-<id>): make sure the target card is
+    // actually rendered (reset the filter, raise the batching cap), then
+    // scroll to it. The featured card has an id too but is never hidden.
+    const revealHashTarget = () => {
+      const id = decodeURIComponent(location.hash.slice(1));
+      if (!id.startsWith('post-')) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const index = items.indexOf(target as HTMLLIElement);
+      if (index >= 0) {
+        activeFilter = 'all';
+        visibleCap = Math.max(visibleCap, index + 1);
+        for (const candidate of chips) {
+          candidate.setAttribute(
+            'aria-pressed',
+            String(candidate.dataset.instagramFilter === 'all'),
+          );
+        }
+        apply();
+      }
+      // Deferred: newly-revealed cards above the target still need layout
+      // (content-visibility) before its final position is known.
+      window.setTimeout(() => target.scrollIntoView({ block: 'start' }), 60);
+    };
+    revealHashTarget();
+    window.addEventListener('hashchange', revealHashTarget);
   }
 
   /* --------------------------------------- swipeable carousel galleries */
