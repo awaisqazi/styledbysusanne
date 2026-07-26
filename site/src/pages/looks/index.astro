@@ -1,30 +1,52 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import InstagramLookCard from '../../components/InstagramLookCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Sparkle from '../../components/Sparkle.astro';
-import { instagramPosts } from '../../lib/instagram';
+import {
+  elementLabel,
+  instagramPosts,
+  resolveInstagramImage,
+  similarToPost,
+} from '../../lib/instagram';
 import { LOOK_CATEGORIES, type LookCategory } from '../../lib/looks';
 
-/** Newest post with a full piece-by-piece shopping edit leads the page. */
-const featuredPost = instagramPosts.find((post) => post.shopHref) ?? instagramPosts[0];
-const gridPosts = instagramPosts.filter((post) => post !== featuredPost);
-
+/**
+ * Social-feed lookbook: an Instagram-style tile grid where every tile opens
+ * an in-page modal (media carousel + caption + elements + recommendations),
+ * navigable post to post like the feed it comes from. Progressive
+ * enhancement throughout: without JavaScript the tiles anchor-jump to the
+ * same detail blocks rendered at the end of the page (dialog:target), the
+ * carousels swipe natively, and every post stays reachable.
+ */
 const gridCategories = (Object.keys(LOOK_CATEGORIES) as LookCategory[]).filter((category) =>
-  gridPosts.some((post) => post.category === category),
+  instagramPosts.some((post) => post.category === category),
 );
 const categoryCounts = Object.fromEntries(
   gridCategories.map((category) => [
     category,
-    gridPosts.filter((post) => post.category === category).length,
+    instagramPosts.filter((post) => post.category === category).length,
   ]),
 ) as Record<LookCategory, number>;
-const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.media.length, 0);
+const mediaCount = instagramPosts.reduce((total, post) => total + post.media.length, 0);
+
+/** Element-tag recommendations shown inside each modal. */
+const recommendationsById = new Map(
+  instagramPosts.map((post) => [post.id, similarToPost(post, 3)]),
+);
+
+const dateLabel = (date: string) =>
+  new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 ---
 
 <Base
   title="Shop the Looks"
-  description="Browse Susanne's real outfits and styling notes: the complete Instagram lookbook, every carousel slide included, with piece-by-piece shopping edits on selected looks."
+  description="Browse Susanne's real outfits like a feed: tap any look for the full caption, every carousel slide, detected style elements, and shoppable piece-by-piece edits."
 >
   <!-- ============================================================ Hero -->
   <section class="looks-hero bg-blush-wash">
@@ -35,9 +57,9 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
       <h1>Real outfits, from my closet to <em class="serif-italic">yours</em></h1>
       <p class="lede">
         Every look starts on @styled.by.susanne: a real day, a real outfit,
-        and the styling note that made it work. Browse the whole feed here,
-        swipe through every carousel slide, and find deeper shopping
-        breakdowns on selected looks.
+        and the styling note that made it work. Tap any look for the full
+        story, every carousel slide, and similar outfits matched by what's
+        actually in the photo.
       </p>
       <p class="looks-disclosure">
         Honesty first: some of the product links on these pages are affiliate
@@ -48,65 +70,39 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     </div>
   </section>
 
-  <!-- ==================================================== Featured edit -->
-  <section
-    class="section looks-featured"
-    aria-labelledby="featured-heading"
-    id={`post-${featuredPost.id}`}
-  >
-    <div class="container">
-      <div class="looks-featured-head">
-        <p class="eyebrow" id="featured-heading">Fresh from the feed</p>
-      </div>
-      <InstagramLookCard post={featuredPost} eager variant="featured" />
-    </div>
-  </section>
-
   <!-- =============================================== Instagram lookbook -->
   <section class="section instagram-lookbook" id="instagram-lookbook">
-    <div class="container">
-      <div class="instagram-lookbook-head">
-        <div>
-          <p class="eyebrow">Every look from @styled.by.susanne</p>
-          <h2>The complete Instagram <em class="serif-italic">lookbook</em></h2>
-          <p class="lede">
-            Every outfit post, caption, reel cover, and carousel slide lives
-            here, easy to find long after it leaves the feed. Posts marked
-            &ldquo;Shop this look&rdquo; have full piece-by-piece edits.
-          </p>
-        </div>
-        <p class="instagram-lookbook-count">
-          <strong>{instagramPosts.length}</strong> posts<br />
-          <strong>{instagramMediaCount}</strong> visuals
-        </p>
-      </div>
-    </div>
-
     <div class="lookbook-toolbar" data-lookbook-toolbar>
       <div class="container">
-        <div
-          class="filter-chips"
-          role="group"
-          aria-label="Filter looks by category"
-          data-instagram-filter-bar
-          hidden
-        >
-          <button class="filter-chip" type="button" data-instagram-filter="all" aria-pressed="true">
-            All looks <span class="filter-chip-count">{gridPosts.length}</span>
-          </button>
-          {
-            gridCategories.map((category) => (
-              <button
-                class="filter-chip"
-                type="button"
-                data-instagram-filter={category}
-                aria-pressed="false"
-              >
-                {LOOK_CATEGORIES[category]}
-                <span class="filter-chip-count">{categoryCounts[category]}</span>
-              </button>
-            ))
-          }
+        <div class="lookbook-toolbar-row">
+          <div
+            class="filter-chips"
+            role="group"
+            aria-label="Filter looks by category"
+            data-instagram-filter-bar
+            hidden
+          >
+            <button class="filter-chip" type="button" data-instagram-filter="all" aria-pressed="true">
+              All looks <span class="filter-chip-count">{instagramPosts.length}</span>
+            </button>
+            {
+              gridCategories.map((category) => (
+                <button
+                  class="filter-chip"
+                  type="button"
+                  data-instagram-filter={category}
+                  aria-pressed="false"
+                >
+                  {LOOK_CATEGORIES[category]}
+                  <span class="filter-chip-count">{categoryCounts[category]}</span>
+                </button>
+              ))
+            }
+          </div>
+          <p class="lookbook-count">
+            <strong>{instagramPosts.length}</strong> posts ·
+            <strong>{mediaCount}</strong> visuals
+          </p>
         </div>
       </div>
     </div>
@@ -114,17 +110,45 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     <div class="container">
       <p class="visually-hidden" role="status" data-instagram-filter-status></p>
 
-      <ul class="instagram-grid" role="list">
+      <ul class="feed-grid" role="list">
         {
-          gridPosts.map((post, index) => (
-            <li data-instagram-category={post.category} id={`post-${post.id}`}>
-              <InstagramLookCard post={post} eager={index < 3} />
+          instagramPosts.map((post, index) => (
+            <li data-instagram-category={post.category} data-tile={post.id}>
+              <a
+                class="feed-tile"
+                href={`#post-${post.id}`}
+                aria-label={`Open look: ${post.title}`}
+              >
+                <Image
+                  src={resolveInstagramImage(post.media[0].src)}
+                  alt={post.media[0].alt}
+                  widths={[320, 480, 700]}
+                  sizes="(max-width: 980px) 33vw, 310px"
+                  loading={index < 6 ? 'eager' : 'lazy'}
+                  fetchpriority={index === 0 ? 'high' : 'auto'}
+                />
+                <span class="feed-tile-badges" aria-hidden="true">
+                  {post.media.length > 1 && (
+                    <svg class="feed-tile-stack" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 3h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-1V6a2 2 0 0 0-2-2H8V4a1 1 0 0 1 1-1Z" />
+                      <rect x="3" y="7" width="14" height="14" rx="1.5" />
+                    </svg>
+                  )}
+                  {post.kind === 'reel' && <span class="feed-tile-tag">Reel</span>}
+                </span>
+                {post.shopHref && <span class="feed-tile-shop" aria-hidden="true">Shop</span>}
+                <span class="feed-tile-hover" aria-hidden="true">
+                  <span>♥ {post.likes}</span>
+                  <span>💬 {post.comments}</span>
+                </span>
+              </a>
             </li>
           ))
         }
       </ul>
 
       <div class="lookbook-more">
+        <div data-feed-sentinel aria-hidden="true"></div>
         <button class="btn btn--outline" type="button" data-show-more hidden>
           Show more looks
         </button>
@@ -156,50 +180,203 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     secondaryLabel="Browse Styling Services"
     secondaryHref="/services"
   />
+
+  <!-- ================================================== Post modals -->
+  {
+    instagramPosts.map((post) => (
+      <dialog
+        class="post-modal"
+        id={`post-${post.id}`}
+        data-post-modal={post.id}
+        aria-label={`Look from ${dateLabel(post.date)}: ${post.title}`}
+      >
+        <a class="post-modal-close" href="#instagram-lookbook" data-modal-close aria-label="Close look">
+          ✕
+        </a>
+
+        <article class="post-modal-body">
+          <div class="post-modal-media" data-instagram-gallery>
+            <div
+              class="post-modal-track"
+              data-gallery-track
+              tabindex={post.media.length > 1 ? 0 : undefined}
+              role={post.media.length > 1 ? 'group' : undefined}
+              aria-label={post.media.length > 1 ? `${post.media.length} photos` : undefined}
+            >
+              {post.media.map((media) => (
+                <figure class="post-modal-slide">
+                  <Image
+                    src={resolveInstagramImage(media.src)}
+                    alt={media.alt}
+                    widths={[480, 720, 1080]}
+                    sizes="(max-width: 900px) 100vw, 54vw"
+                    loading="lazy"
+                  />
+                </figure>
+              ))}
+            </div>
+            {post.media.length > 1 && (
+              <>
+                <button class="gallery-nav gallery-nav--prev" type="button" data-gallery-previous aria-label="Previous photo" disabled>
+                  ←
+                </button>
+                <button class="gallery-nav gallery-nav--next" type="button" data-gallery-next aria-label="Next photo">
+                  →
+                </button>
+                <div class="gallery-dots" data-gallery-dots aria-hidden="true">
+                  {post.media.map((_, index) => (
+                    <span class:list={['gallery-dot', { 'is-active': index === 0 }]} />
+                  ))}
+                </div>
+                <span class="gallery-count" data-gallery-count>
+                  1 / {post.media.length}
+                </span>
+              </>
+            )}
+          </div>
+
+          <div class="post-modal-panel">
+            <header class="post-modal-head">
+              <p class="post-modal-kicker">
+                {LOOK_CATEGORIES[post.category]}
+                {post.kind === 'reel' && <span class="post-modal-reel">Reel</span>}
+              </p>
+              <p class="post-modal-meta">
+                <time datetime={post.date}>{dateLabel(post.date)}</time>
+                {post.location && <span> · {post.location}</span>}
+              </p>
+              {/* Fixed beside the dialog on desktop, in-flow on mobile. */}
+              <div class="post-modal-steps">
+                <button
+                  class="post-modal-nav post-modal-nav--prev"
+                  type="button"
+                  data-modal-prev
+                  aria-label="Previous look"
+                >
+                  ←
+                </button>
+                <button
+                  class="post-modal-nav post-modal-nav--next"
+                  type="button"
+                  data-modal-next
+                  aria-label="Next look"
+                >
+                  →
+                </button>
+              </div>
+            </header>
+
+            <p class="post-modal-stats">
+              <span>♥ {post.likes} likes</span>
+              <span>💬 {post.comments} comments</span>
+            </p>
+
+            <details class="post-modal-caption">
+              <summary>{post.title}</summary>
+              <p>{post.caption}</p>
+            </details>
+
+            {post.elements.length > 0 && (
+              <ul class="post-modal-elements" role="list" aria-label="In this look">
+                {post.elements.slice(0, 10).map((tag) => (
+                  <li>{elementLabel(tag)}</li>
+                ))}
+              </ul>
+            )}
+
+            <div class="post-modal-actions">
+              {post.shopHref && (
+                <a class="btn btn--rose post-modal-shop" href={post.shopHref}>
+                  Shop this look piece by piece
+                </a>
+              )}
+              <a
+                class="post-modal-source"
+                href={post.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View on Instagram <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+
+            {(recommendationsById.get(post.id) ?? []).length > 0 && (
+              <div class="post-modal-related">
+                <p class="post-modal-related-title">More like this</p>
+                <ul role="list">
+                  {(recommendationsById.get(post.id) ?? []).map(({ post: related, shared }) => (
+                    <li>
+                      <a href={`#post-${related.id}`} class="post-modal-related-card">
+                        <span class="post-modal-related-thumb">
+                          <Image
+                            src={resolveInstagramImage(related.media[0].src)}
+                            alt={related.media[0].alt}
+                            widths={[120, 240]}
+                            sizes="72px"
+                            loading="lazy"
+                          />
+                        </span>
+                        <span class="post-modal-related-text">
+                          <span class="post-modal-related-label">
+                            {shared.slice(0, 3).map(elementLabel).join(' · ')}
+                          </span>
+                          <span class="post-modal-related-name">{related.title}</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </article>
+      </dialog>
+    ))
+  }
 </Base>
 
 <script>
-  // Progressive enhancement throughout: without JavaScript every post is
-  // visible, captions expand natively, and carousels swipe via scroll-snap.
+  // Progressive enhancement: without JavaScript every tile anchor-jumps to
+  // its detail block (dialog:target renders it in-flow), carousels swipe
+  // via scroll-snap, and the grid shows every post.
 
-  /* ------------------------------- category filter + show-more batching */
-  const BATCH = 12;
+  /* ------------------------------- category filter + feed batching */
+  const BATCH = 15;
   const bar = document.querySelector<HTMLElement>('[data-instagram-filter-bar]');
-  const items = Array.from(
-    document.querySelectorAll<HTMLLIElement>('li[data-instagram-category]'),
-  );
+  const items = Array.from(document.querySelectorAll<HTMLLIElement>('li[data-tile]'));
   const status = document.querySelector<HTMLElement>('[data-instagram-filter-status]');
   const moreButton = document.querySelector<HTMLButtonElement>('[data-show-more]');
+  const sentinel = document.querySelector<HTMLElement>('[data-feed-sentinel]');
+
+  let activeFilter = 'all';
+  let visibleCap = BATCH;
+
+  const matching = () =>
+    items.filter(
+      (item) => activeFilter === 'all' || item.dataset.instagramCategory === activeFilter,
+    );
+
+  const apply = () => {
+    const matches = matching();
+    for (const item of items) item.hidden = true;
+    matches.forEach((item, index) => {
+      item.hidden = index >= visibleCap;
+    });
+
+    const shown = Math.min(visibleCap, matches.length);
+    const remaining = matches.length - shown;
+    if (status) status.textContent = `Showing ${shown} of ${matches.length} looks`;
+    if (moreButton) {
+      moreButton.hidden = remaining <= 0;
+      moreButton.textContent = `Show ${Math.min(BATCH, remaining)} more looks (${remaining} left)`;
+    }
+  };
 
   if (bar && items.length) {
     bar.hidden = false;
     const chips = Array.from(
       bar.querySelectorAll<HTMLButtonElement>('button[data-instagram-filter]'),
     );
-
-    let activeFilter = 'all';
-    let visibleCap = BATCH;
-
-    const apply = () => {
-      const matches = items.filter(
-        (item) => activeFilter === 'all' || item.dataset.instagramCategory === activeFilter,
-      );
-      for (const item of items) item.hidden = true;
-      matches.forEach((item, index) => {
-        item.hidden = index >= visibleCap;
-      });
-
-      const shown = Math.min(visibleCap, matches.length);
-      const remaining = matches.length - shown;
-      if (status) {
-        status.textContent = `Showing ${shown} of ${matches.length} looks`;
-      }
-      if (moreButton) {
-        moreButton.hidden = remaining <= 0;
-        moreButton.textContent = `Show ${Math.min(BATCH, remaining)} more looks (${remaining} left)`;
-      }
-    };
-
     for (const chip of chips) {
       chip.addEventListener('click', () => {
         activeFilter = chip.dataset.instagramFilter ?? 'all';
@@ -216,37 +393,24 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
       apply();
     });
 
-    apply();
+    // Social-feed scrolling: quietly load the next batch as the visitor
+    // approaches the end; the button stays as an accessible fallback.
+    if (sentinel && 'IntersectionObserver' in window) {
+      new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting) && !moreButton?.hidden) {
+            visibleCap += BATCH;
+            apply();
+          }
+        },
+        { rootMargin: '600px 0px' },
+      ).observe(sentinel);
+    }
 
-    // Deep links from look pages (#post-<id>): make sure the target card is
-    // actually rendered (reset the filter, raise the batching cap), then
-    // scroll to it. The featured card has an id too but is never hidden.
-    const revealHashTarget = () => {
-      const id = decodeURIComponent(location.hash.slice(1));
-      if (!id.startsWith('post-')) return;
-      const target = document.getElementById(id);
-      if (!target) return;
-      const index = items.indexOf(target as HTMLLIElement);
-      if (index >= 0) {
-        activeFilter = 'all';
-        visibleCap = Math.max(visibleCap, index + 1);
-        for (const candidate of chips) {
-          candidate.setAttribute(
-            'aria-pressed',
-            String(candidate.dataset.instagramFilter === 'all'),
-          );
-        }
-        apply();
-      }
-      // Deferred: newly-revealed cards above the target still need layout
-      // (content-visibility) before its final position is known.
-      window.setTimeout(() => target.scrollIntoView({ block: 'start' }), 60);
-    };
-    revealHashTarget();
-    window.addEventListener('hashchange', revealHashTarget);
+    apply();
   }
 
-  /* --------------------------------------- swipeable carousel galleries */
+  /* --------------------------------------- swipeable media carousels */
   for (const gallery of document.querySelectorAll<HTMLElement>('[data-instagram-gallery]')) {
     const track = gallery.querySelector<HTMLElement>('[data-gallery-track]');
     if (!track || track.children.length < 2) continue;
@@ -267,6 +431,11 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
 
     const goTo = (index: number) => {
       const clamped = Math.min(slideCount - 1, Math.max(0, index));
+      // Update immediately rather than waiting on the debounced scroll
+      // listener: smooth scrolling can be interrupted, and the controls
+      // should never lag behind the tap.
+      active = clamped;
+      render();
       track.scrollTo({ left: clamped * track.clientWidth, behavior: 'smooth' });
     };
 
@@ -291,6 +460,141 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
 
     render();
   }
+
+  /* -------------------------------------------------- post modals */
+  const modals = new Map(
+    Array.from(document.querySelectorAll<HTMLDialogElement>('[data-post-modal]')).map(
+      (modal) => [modal.dataset.postModal!, modal],
+    ),
+  );
+  let openId: string | null = null;
+
+  const orderedIds = () => matching().map((item) => item.dataset.tile!);
+
+  const revealTile = (id: string) => {
+    const tile = document.querySelector<HTMLLIElement>(`li[data-tile="${id}"]`);
+    if (!tile) return;
+    const matches = matching();
+    const index = matches.indexOf(tile);
+    if (index >= 0 && index >= visibleCap) {
+      visibleCap = index + 1;
+      apply();
+    }
+  };
+
+  const setHash = (hash: string) => {
+    // pushState instead of location.hash: no native scroll jump.
+    history.pushState(null, '', hash || location.pathname);
+  };
+
+  /**
+   * Teardown for whichever post is showing. Idempotent and keyed by id, so
+   * a late `close` event from a modal we already navigated away from is a
+   * no-op. Not driven by the `close` event alone: some engines do not fire
+   * it for programmatic close(), which would strand the scroll lock.
+   */
+  const cleanupAfterClose = (id: string, restoreScroll = true) => {
+    if (openId !== id) return;
+    openId = null;
+    document.documentElement.classList.remove('modal-open');
+    setHash('');
+    if (!restoreScroll) return;
+    const tile = document.querySelector(`li[data-tile="${id}"] a`);
+    const rect = tile?.getBoundingClientRect();
+    if (tile && rect && (rect.bottom < 0 || rect.top > window.innerHeight)) {
+      tile.scrollIntoView({ block: 'center' });
+    }
+  };
+
+  const closeModal = () => {
+    if (!openId) return;
+    const id = openId;
+    modals.get(id)?.close();
+    cleanupAfterClose(id);
+  };
+
+  const openModal = (id: string, updateHash = true) => {
+    const modal = modals.get(id);
+    if (!modal) return;
+    if (openId && openId !== id) modals.get(openId)?.close();
+    openId = id;
+    if (!modal.open) modal.showModal();
+    document.documentElement.classList.add('modal-open');
+    revealTile(id);
+    if (updateHash) setHash(`#post-${id}`);
+
+    const ids = orderedIds();
+    const index = ids.indexOf(id);
+    const prev = modal.querySelector<HTMLButtonElement>('[data-modal-prev]');
+    const next = modal.querySelector<HTMLButtonElement>('[data-modal-next]');
+    if (prev) prev.disabled = index <= 0;
+    if (next) next.disabled = index === -1 || index >= ids.length - 1;
+  };
+
+  const step = (direction: number) => {
+    if (!openId) return;
+    const ids = orderedIds();
+    const target = ids[ids.indexOf(openId) + direction];
+    if (target) openModal(target);
+  };
+
+  for (const [id, modal] of modals) {
+    // Escape and any other native dismissal land here.
+    modal.addEventListener('close', () => cleanupAfterClose(id));
+    modal.addEventListener('cancel', () => cleanupAfterClose(id));
+
+    // Click on the backdrop (the dialog element itself) closes.
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeModal();
+    });
+
+    modal.querySelector('[data-modal-prev]')?.addEventListener('click', () => step(-1));
+    modal.querySelector('[data-modal-next]')?.addEventListener('click', () => step(1));
+  }
+
+  // One delegated handler covers tiles, recommendation cards, and close
+  // links, wherever they live.
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const close = target.closest('[data-modal-close]');
+    if (close) {
+      event.preventDefault();
+      closeModal();
+      return;
+    }
+    const link = target.closest<HTMLAnchorElement>('a[href^="#post-"]');
+    if (!link) return;
+    event.preventDefault();
+    openModal(decodeURIComponent(link.hash.slice('#post-'.length)));
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (!openId) return;
+    if (event.key === 'ArrowLeft') step(-1);
+    if (event.key === 'ArrowRight') step(1);
+    // Escape is handled here as well as natively: engines differ on whether
+    // a modal dialog dismisses (and fires cancel/close) on its own.
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeModal();
+    }
+  });
+
+  // Deep links (/looks#post-xyz), including back/forward navigation.
+  const syncToHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (id.startsWith('post-') && modals.has(id.slice(5))) {
+      openModal(id.slice(5), false);
+    } else if (openId) {
+      // Back button: close without pushing another history entry.
+      const current = openId;
+      modals.get(current)?.close();
+      openId = null;
+      document.documentElement.classList.remove('modal-open');
+    }
+  };
+  window.addEventListener('popstate', syncToHash);
+  syncToHash();
 </script>
 
 <style>
@@ -322,59 +626,12 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     border-top: 1px solid var(--gold-hairline);
   }
 
-  /* Featured edit */
-  .looks-featured {
-    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem);
-  }
-
-  .looks-featured-head {
-    margin-bottom: 1.4rem;
-  }
-
-  /* Lookbook head */
+  /* Sticky filter toolbar */
   .instagram-lookbook {
     border-top: 1px solid var(--line-soft);
-    padding-top: clamp(3rem, 2.4rem + 2vw, 5rem);
+    padding-top: 0;
   }
 
-  .instagram-lookbook-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: clamp(2rem, 5vw, 5rem);
-    margin-bottom: 1.6rem;
-  }
-
-  .instagram-lookbook-head h2 em {
-    color: var(--rose);
-  }
-
-  .instagram-lookbook-head .lede {
-    max-width: 44rem;
-    margin-bottom: 0;
-  }
-
-  .instagram-lookbook-count {
-    min-width: 8.5rem;
-    color: var(--umber);
-    border-left: 1px solid var(--gold-hairline);
-    padding-left: 1.25rem;
-    margin: 0 0 0.2rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
-    line-height: 1.6;
-    text-transform: uppercase;
-  }
-
-  .instagram-lookbook-count strong {
-    color: var(--espresso);
-    font-family: var(--font-serif);
-    font-size: 1.7rem;
-    font-weight: 500;
-    letter-spacing: 0;
-  }
-
-  /* Sticky filter toolbar */
   .lookbook-toolbar {
     position: sticky;
     top: 4.35rem;
@@ -384,13 +641,50 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     -webkit-backdrop-filter: blur(10px);
     border-block: 1px solid var(--line-soft);
     padding-block: 0.75rem;
-    margin-bottom: 2.2rem;
+    margin-bottom: clamp(0.35rem, 1vw, 1.6rem);
+  }
+
+  .lookbook-toolbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+
+  .lookbook-count {
+    flex: 0 0 auto;
+    color: var(--umber);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin: 0;
+    padding-left: 1.1rem;
+    border-left: 1px solid var(--gold-hairline);
+  }
+
+  .lookbook-count strong {
+    color: var(--espresso);
   }
 
   .filter-chips {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-block: 0.15rem;
+    min-width: 0;
+    /* Fade the trailing edge so a chip cut off mid-scroll reads as "more
+       this way" rather than as a clipped layout. */
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
+  }
+
+  .filter-chips::-webkit-scrollbar {
+    display: none;
   }
 
   .filter-chips[hidden] {
@@ -402,7 +696,9 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    min-height: 2.75rem; /* 44px tap target */
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    min-height: 2.75rem;
     font-family: var(--font-sans);
     font-size: 0.78rem;
     font-weight: 550;
@@ -447,34 +743,113 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     color: #fffdf9;
   }
 
-  .filter-chip[aria-pressed='true']:hover {
-    background: var(--rose-deep);
-    border-color: var(--rose-deep);
-  }
-
-  /* Grid */
-  .instagram-grid {
+  /* Feed grid: photo-first, thin gaps, square tiles */
+  .feed-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.8rem;
+    gap: clamp(3px, 0.9vw, 14px);
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
-  .instagram-grid > li {
+  .feed-grid > li {
     min-width: 0;
-    content-visibility: auto;
-    /* Height-only placeholder: a single-value contain-intrinsic-size would
-       also claim 46rem of WIDTH for skipped items and widen the page. */
-    contain-intrinsic-width: auto none;
-    contain-intrinsic-height: auto 46rem;
+  }
+
+  .feed-tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: clamp(2px, 0.5vw, 10px);
+    background: var(--ivory);
+  }
+
+  .feed-tile :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 0.45s ease;
+  }
+
+  .feed-tile:hover :global(img),
+  .feed-tile:focus-visible :global(img) {
+    scale: 1.04;
+  }
+
+  .feed-tile:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 2px;
+  }
+
+  .feed-tile-badges {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #fffdf9;
+    filter: drop-shadow(0 1px 4px rgba(54, 44, 36, 0.5));
+  }
+
+  .feed-tile-stack {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .feed-tile-tag,
+  .feed-tile-shop {
+    font-size: 0.6rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem;
+  }
+
+  .feed-tile-tag {
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.92);
+  }
+
+  .feed-tile-shop {
+    position: absolute;
+    left: 0.55rem;
+    bottom: 0.55rem;
+    color: #fffdf9;
+    background: var(--rose);
+    box-shadow: 0 1px 6px rgba(54, 44, 36, 0.35);
+  }
+
+  /* Desktop hover overlay with engagement, like the feed it mirrors */
+  .feed-tile-hover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    color: #fffdf9;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(54, 44, 36, 0.45);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+
+  @media (hover: hover) {
+    .feed-tile:hover .feed-tile-hover,
+    .feed-tile:focus-visible .feed-tile-hover {
+      opacity: 1;
+    }
   }
 
   .lookbook-more {
     display: flex;
     justify-content: center;
-    margin-top: 2.6rem;
+    margin-top: 2.2rem;
   }
 
   .lookbook-more .btn[hidden] {
@@ -498,55 +873,528 @@ const instagramMediaCount = instagramPosts.reduce((total, post) => total + post.
     gap: 1rem;
   }
 
+  /* ------------------------------------------------------ post modal */
+  .post-modal {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    max-width: min(64rem, calc(100vw - 2rem));
+    width: 100%;
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .post-modal::backdrop {
+    background: rgba(35, 26, 20, 0.72);
+    backdrop-filter: blur(6px);
+  }
+
+  .post-modal-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    background: var(--paper, #faf6ef);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .post-modal-media {
+    position: relative;
+    background: var(--ivory);
+  }
+
+  .post-modal-track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .post-modal-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .post-modal-track:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: -2px;
+  }
+
+  .post-modal-slide {
+    flex: 0 0 100%;
+    margin: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .post-modal-slide :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Carousel controls (shared look with the old cards) */
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.92);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(54, 44, 36, 0.18);
+  }
+
+  .gallery-nav--prev {
+    left: 0.7rem;
+  }
+
+  .gallery-nav--next {
+    right: 0.7rem;
+  }
+
+  .gallery-nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .gallery-dots {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.7rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    pointer-events: none;
+  }
+
+  .gallery-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: rgba(250, 246, 239, 0.65);
+    box-shadow: 0 1px 4px rgba(54, 44, 36, 0.35);
+  }
+
+  .gallery-dot.is-active {
+    background: var(--card);
+    scale: 1.25;
+  }
+
+  .gallery-count {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    color: var(--paper);
+    background: rgba(54, 44, 36, 0.82);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  /* Panel */
+  .post-modal-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: clamp(1.2rem, 1rem + 1vw, 1.8rem);
+    overflow-y: auto;
+  }
+
+  .post-modal-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-right: 2.4rem; /* room for the close button */
+  }
+
+  .post-modal-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--rose);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .post-modal-reel {
+    color: var(--rose-deep);
+    background: var(--rose-soft);
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    letter-spacing: 0.14em;
+  }
+
+  .post-modal-meta {
+    color: var(--umber);
+    font-size: 0.78rem;
+    margin: 0;
+  }
+
+  .post-modal-stats {
+    display: flex;
+    gap: 1rem;
+    color: var(--espresso);
+    font-size: 0.82rem;
+    font-weight: 550;
+    margin: 0;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .post-modal-caption summary {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--espresso);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .post-modal-caption summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .post-modal-caption summary::after {
+    content: ' … more';
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    color: var(--umber);
+  }
+
+  .post-modal-caption[open] summary::after {
+    content: '';
+  }
+
+  .post-modal-caption p {
+    white-space: pre-line;
+    color: var(--umber);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin: 0.7rem 0 0;
+  }
+
+  .post-modal-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .post-modal-elements li {
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--espresso);
+    background: var(--ivory);
+    border: 1px solid var(--gold-hairline);
+    border-radius: 999px;
+    padding: 0.22rem 0.6rem;
+  }
+
+  .post-modal-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .post-modal-shop {
+    width: 100%;
+    text-align: center;
+  }
+
+  .post-modal-source {
+    color: var(--umber);
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.15rem;
+  }
+
+  .post-modal-source:hover {
+    color: var(--espresso);
+    border-color: var(--gold);
+  }
+
+  /* Recommendations */
+  .post-modal-related {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 0.9rem;
+    margin-top: auto;
+  }
+
+  .post-modal-related-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+    margin: 0 0 0.7rem;
+  }
+
+  .post-modal-related ul {
+    display: grid;
+    gap: 0.55rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .post-modal-related-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    border-radius: var(--radius);
+    padding: 0.35rem;
+    transition: background-color var(--transition);
+  }
+
+  .post-modal-related-card:hover,
+  .post-modal-related-card:focus-visible {
+    background: var(--rose-tint, var(--ivory));
+  }
+
+  .post-modal-related-thumb {
+    flex: 0 0 4.5rem;
+    aspect-ratio: 1;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: var(--ivory);
+  }
+
+  .post-modal-related-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .post-modal-related-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .post-modal-related-label {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--rose-deep);
+  }
+
+  .post-modal-related-name {
+    color: var(--umber);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  /* Close + post navigation */
+  .post-modal-close {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.92);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 12px rgba(54, 44, 36, 0.18);
+  }
+
+  .post-modal-close:hover {
+    color: var(--rose-deep);
+    border-color: var(--rose);
+  }
+
+  /* Desktop: the pair sits outside the dialog card, fixed to the viewport,
+     so their DOM home inside the header is irrelevant. */
+  .post-modal-steps {
+    display: contents;
+  }
+
+  .post-modal-nav {
+    position: fixed;
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 2;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.95);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font: inherit;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 2px 14px rgba(54, 44, 36, 0.3);
+  }
+
+  .post-modal-nav--prev {
+    left: max(0.8rem, calc((100vw - 64rem) / 2 - 3.6rem));
+  }
+
+  .post-modal-nav--next {
+    right: max(0.8rem, calc((100vw - 64rem) / 2 - 3.6rem));
+  }
+
+  .post-modal-nav:disabled {
+    opacity: 0.25;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Post navigation needs JS; hide it (and the hover overlay hint) without */
+  :global(html:not(.js)) .post-modal-nav,
+  :global(html:not(.js)) .gallery-nav,
+  :global(html:not(.js)) .gallery-count {
+    display: none;
+  }
+
+  /* No-JS fallback: a targeted dialog renders in-flow as a plain section.
+     Position and sizing are stated explicitly so neither the UA's absolute
+     positioning for dialogs nor the mobile 100dvh rule can clip it. */
+  :global(html:not(.js)) .post-modal:target {
+    display: block;
+    position: relative;
+    inset: auto;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    max-height: none;
+    margin: 0;
+  }
+
+  :global(html:not(.js)) .post-modal:target .post-modal-body {
+    height: auto;
+    max-height: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  :global(html:not(.js)) .post-modal:target .post-modal-panel {
+    overflow: visible;
+  }
+
+  :global(html:not(.js)) .post-modal:target .post-modal-close {
+    position: sticky;
+    top: 5rem;
+    float: right;
+  }
+
+  /* Lock the page behind an open modal */
+  :global(html.modal-open) {
+    overflow: hidden;
+  }
+
   /* Responsive */
-  @media (max-width: 980px) {
-    .instagram-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (max-width: 900px) {
+    .post-modal {
+      max-width: 100vw;
+      max-height: 100dvh;
+      height: 100dvh;
+      margin: 0;
+    }
+
+    .post-modal-body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100dvh;
+      max-height: 100dvh;
+      border-radius: 0;
+    }
+
+    /* Fixed height, not aspect-ratio: with a capped height the ratio would
+       shrink the box's WIDTH and leave dead space beside the photo. */
+    .post-modal-media {
+      width: 100%;
+      height: min(58dvh, 32rem);
+    }
+
+    .post-modal-slide,
+    .post-modal-slide :global(img) {
+      height: 100%;
+    }
+
+    /* Swipe is the native gesture here, and the dots already signal a
+       carousel; two sets of arrows on one small screen just read as noise. */
+    .gallery-nav {
+      display: none;
+    }
+
+    /* Mobile: post navigation joins the header in normal flow, so it can
+       never float over the caption or the shop button. */
+    .post-modal-steps {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .post-modal-nav {
+      position: static;
+      translate: none;
+      width: 2.5rem;
+      height: 2.5rem;
+      box-shadow: none;
+      background: var(--card);
     }
   }
 
   @media (max-width: 640px) {
-    .instagram-lookbook-head {
-      grid-template-columns: 1fr;
-      gap: 1.2rem;
+    .lookbook-toolbar {
+      top: 4.1rem;
     }
 
-    .instagram-lookbook-count {
-      border-left: 0;
-      border-top: 1px solid var(--gold-hairline);
-      padding: 1rem 0 0;
+    .lookbook-toolbar-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.4rem;
     }
 
-    .instagram-grid {
-      grid-template-columns: minmax(0, 1fr);
-      max-width: 26rem;
-      margin-inline: auto;
-      gap: 1.5rem;
+    .lookbook-count {
+      text-align: center;
+      order: 2;
     }
 
-    /* One swipeable row of chips, edge to edge, scrollbar hidden. */
+    /* Edge-to-edge swipeable chip row */
     .filter-chips {
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      scroll-snap-type: x proximity;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
       margin-inline: -1.25rem;
       padding-inline: 1.25rem;
-      padding-block: 0.15rem;
-    }
-
-    .filter-chips::-webkit-scrollbar {
-      display: none;
-    }
-
-    .filter-chips[hidden] {
-      display: none;
-    }
-
-    .filter-chip {
-      flex: 0 0 auto;
-      scroll-snap-align: start;
     }
   }
 </style>
