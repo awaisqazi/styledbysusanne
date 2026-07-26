@@ -138,8 +138,7 @@ const dateLabel = (date: string) =>
                 </span>
                 {post.shopHref && <span class="feed-tile-shop" aria-hidden="true">Shop</span>}
                 <span class="feed-tile-hover" aria-hidden="true">
-                  <span>♥ {post.likes}</span>
-                  <span>💬 {post.comments}</span>
+                  View look <span class="feed-tile-arrow">→</span>
                 </span>
               </a>
             </li>
@@ -265,11 +264,6 @@ const dateLabel = (date: string) =>
                 </button>
               </div>
             </header>
-
-            <p class="post-modal-stats">
-              <span>♥ {post.likes} likes</span>
-              <span>💬 {post.comments} comments</span>
-            </p>
 
             <details class="post-modal-caption">
               <summary>{post.title}</summary>
@@ -830,13 +824,23 @@ const dateLabel = (date: string) =>
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1.2rem;
+    gap: 0.45rem;
     color: #fffdf9;
+    font-size: 0.78rem;
     font-weight: 600;
-    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     background: rgba(54, 44, 36, 0.45);
     opacity: 0;
     transition: opacity var(--transition);
+  }
+
+  .feed-tile-arrow {
+    transition: translate var(--transition);
+  }
+
+  .feed-tile:hover .feed-tile-arrow {
+    translate: 3px 0;
   }
 
   @media (hover: hover) {
@@ -1019,6 +1023,8 @@ const dateLabel = (date: string) =>
     justify-content: space-between;
     gap: 0.5rem;
     padding-right: 2.4rem; /* room for the close button */
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--line-soft);
   }
 
   .post-modal-kicker {
@@ -1045,17 +1051,6 @@ const dateLabel = (date: string) =>
     color: var(--umber);
     font-size: 0.78rem;
     margin: 0;
-  }
-
-  .post-modal-stats {
-    display: flex;
-    gap: 1rem;
-    color: var(--espresso);
-    font-size: 0.82rem;
-    font-weight: 550;
-    margin: 0;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--line-soft);
   }
 
   .post-modal-caption summary {
