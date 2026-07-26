@@ -391,11 +391,17 @@ const description = `${teaser} Shop the exact pieces and similar finds at every 
   }
 
   .piece-label {
-    flex: 1 1 12ch;
-    min-width: 0;
     color: var(--espresso);
     font-weight: 480;
     line-height: 1.45;
+  }
+
+  /* Width basis only where the label sits in the row-direction card; inside
+     the column-direction .piece-main a flex basis would become HEIGHT and
+     stretch the card into a tall empty box. */
+  .piece-card > .piece-label {
+    flex: 1 1 12ch;
+    min-width: 0;
   }
 
   .piece-tag {
