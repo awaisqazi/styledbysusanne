@@ -507,11 +507,20 @@ const dateLabel = (date: string) =>
     cleanupAfterClose(id);
   };
 
-  const openModal = (id: string, updateHash = true) => {
+  /** 0 opens fresh, 1 arrives from the right, -1 from the left. */
+  const openModal = (id: string, updateHash = true, direction = 0) => {
     const modal = modals.get(id);
     if (!modal) return;
     if (openId && openId !== id) modals.get(openId)?.close();
     openId = id;
+
+    const body = modal.querySelector<HTMLElement>('.post-modal-body');
+    if (body) {
+      // Restart the animation on every open, including post-to-post steps.
+      body.removeAttribute('data-enter');
+      void body.offsetWidth;
+      body.dataset.enter = direction > 0 ? 'right' : direction < 0 ? 'left' : 'open';
+    }
     if (!modal.open) modal.showModal();
     document.documentElement.classList.add('modal-open');
     revealTile(id);
@@ -529,7 +538,108 @@ const dateLabel = (date: string) =>
     if (!openId) return;
     const ids = orderedIds();
     const target = ids[ids.indexOf(openId) + direction];
-    if (target) openModal(target);
+    if (target) openModal(target, true, direction);
+  };
+
+  /* --------------------------------- touch: swipe posts, drag to dismiss */
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const compact = window.matchMedia('(max-width: 900px)');
+  const SWIPE_DISTANCE = 60;
+  const DISMISS_DISTANCE = 100;
+
+  const addTouchGestures = (modal: HTMLDialogElement) => {
+    const body = modal.querySelector<HTMLElement>('.post-modal-body');
+    if (!body) return;
+
+    let startX = 0;
+    let startY = 0;
+    let dx = 0;
+    let dy = 0;
+    let axis: 'x' | 'y' | null = null;
+    let tracking = false;
+
+    body.addEventListener(
+      'touchstart',
+      (event) => {
+        if (!compact.matches || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        dx = 0;
+        dy = 0;
+        axis = null;
+        tracking = true;
+        body.style.transition = 'none';
+      },
+      { passive: true },
+    );
+
+    body.addEventListener(
+      'touchmove',
+      (event) => {
+        if (!tracking) return;
+        const touch = event.touches[0];
+        dx = touch.clientX - startX;
+        dy = touch.clientY - startY;
+
+        if (!axis) {
+          if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+          axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+
+          if (axis === 'x') {
+            // A carousel with room left in the swipe direction keeps the
+            // gesture: only at its edges does a swipe change posts.
+            const track = (event.target as HTMLElement).closest<HTMLElement>(
+              '[data-gallery-track]',
+            );
+            const canScrollBack = track ? track.scrollLeft > 2 : false;
+            const canScrollOn = track
+              ? track.scrollLeft < track.scrollWidth - track.clientWidth - 2
+              : false;
+            if ((dx > 0 && canScrollBack) || (dx < 0 && canScrollOn)) {
+              tracking = false;
+              return;
+            }
+          } else {
+            // Drag down to dismiss, but only from the top of the panel so
+            // it never fights reading the caption.
+            const panel = (event.target as HTMLElement).closest<HTMLElement>(
+              '.post-modal-panel',
+            );
+            if (dy < 0 || (panel && panel.scrollTop > 0)) {
+              tracking = false;
+              return;
+            }
+          }
+        }
+
+        if (reduced.matches) return;
+        body.style.transform =
+          axis === 'x'
+            ? `translateX(${dx * 0.35}px)`
+            : `translateY(${Math.max(0, dy) * 0.55}px)`;
+        if (axis === 'y') {
+          body.style.opacity = String(Math.max(0.55, 1 - dy / 500));
+        }
+      },
+      { passive: true },
+    );
+
+    const release = () => {
+      if (!tracking) return;
+      tracking = false;
+      body.style.transition = '';
+      body.style.transform = '';
+      body.style.opacity = '';
+      if (axis === 'x' && Math.abs(dx) > SWIPE_DISTANCE) {
+        step(dx < 0 ? 1 : -1);
+      } else if (axis === 'y' && dy > DISMISS_DISTANCE) {
+        closeModal();
+      }
+    };
+
+    body.addEventListener('touchend', release, { passive: true });
+    body.addEventListener('touchcancel', release, { passive: true });
   };
 
   for (const [id, modal] of modals) {
@@ -544,6 +654,7 @@ const dateLabel = (date: string) =>
 
     modal.querySelector('[data-modal-prev]')?.addEventListener('click', () => step(-1));
     modal.querySelector('[data-modal-next]')?.addEventListener('click', () => step(1));
+    addTouchGestures(modal);
   }
 
   // One delegated handler covers tiles, recommendation cards, and close
@@ -899,6 +1010,65 @@ const dateLabel = (date: string) =>
     border-radius: var(--radius);
     overflow: hidden;
     max-height: calc(100dvh - 2rem);
+  }
+
+  /* Motion: entrance, post-to-post direction, and the spring back from a
+     half-finished drag. Every rule here is inside the no-preference query,
+     so reduced-motion visitors get the same interactions with no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    .post-modal-body {
+      transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 240ms ease;
+      will-change: transform;
+    }
+
+    .post-modal-body[data-enter='open'] {
+      animation: modal-open 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .post-modal-body[data-enter='right'] {
+      animation: modal-from-right 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .post-modal-body[data-enter='left'] {
+      animation: modal-from-left 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .feed-tile {
+      transition: scale 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .feed-tile:active {
+      scale: 0.97;
+    }
+  }
+
+  @keyframes modal-open {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  @keyframes modal-from-right {
+    from {
+      opacity: 0;
+      transform: translateX(6%);
+    }
+  }
+
+  @keyframes modal-from-left {
+    from {
+      opacity: 0;
+      transform: translateX(-6%);
+    }
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: 0.4;
+      transform: translateY(6%);
+    }
   }
 
   .post-modal-media {
@@ -1350,6 +1520,30 @@ const dateLabel = (date: string) =>
        carousel; two sets of arrows on one small screen just read as noise. */
     .gallery-nav {
       display: none;
+    }
+
+    /* A sheet rising from the bottom reads as "mobile" the way a scaling
+       card does not. */
+    @media (prefers-reduced-motion: no-preference) {
+      .post-modal-body[data-enter='open'] {
+        animation-name: sheet-up;
+        animation-duration: 320ms;
+      }
+    }
+
+    /* Grab handle: the affordance for drag-to-dismiss. */
+    .post-modal-media::after {
+      content: '';
+      position: absolute;
+      top: 0.55rem;
+      left: 50%;
+      translate: -50% 0;
+      width: 2.6rem;
+      height: 0.28rem;
+      border-radius: 999px;
+      background: rgba(250, 246, 239, 0.75);
+      box-shadow: 0 1px 4px rgba(54, 44, 36, 0.3);
+      pointer-events: none;
     }
 
     /* Mobile: post navigation joins the header in normal flow, so it can
