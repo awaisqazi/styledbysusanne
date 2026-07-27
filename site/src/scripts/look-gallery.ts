@@ -26,6 +26,8 @@ interface GalleryOptions {
   onSelect?: (look: GalleryLook, index: number) => void;
   /** Fired once the looks around centre have their textures. */
   onReady?: () => void;
+  /** A deliberate vertical swipe on the stage (used by the detail sheet). */
+  onVerticalSwipe?: (direction: 'up' | 'down') => void;
 }
 
 export interface GalleryHandle {
@@ -103,6 +105,7 @@ export function createLookGallery({
   onActiveChange,
   onSelect,
   onReady,
+  onVerticalSwipe,
 }: GalleryOptions): GalleryHandle {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const renderer = new THREE.WebGLRenderer({
@@ -168,6 +171,9 @@ export function createLookGallery({
   let dragging = false;
   let pointerId: number | null = null;
   let dragStartX = 0;
+  let dragStartY = 0;
+  let dragAxis: 'x' | 'y' | null = null;
+  let dragDy = 0;
   let dragStartOffset = 0;
   let moved = 0;
   let paused = false;
@@ -300,8 +306,11 @@ export function createLookGallery({
     if (event.button !== 0 && event.pointerType === 'mouse') return;
     dragging = true;
     moved = 0;
+    dragAxis = null;
+    dragDy = 0;
     pointerId = event.pointerId;
     dragStartX = event.clientX;
+    dragStartY = event.clientY;
     dragStartOffset = offset;
     velocity = 0;
     canvas.setPointerCapture(event.pointerId);
@@ -311,7 +320,18 @@ export function createLookGallery({
   const pointerMove = (event: PointerEvent) => {
     if (!dragging || event.pointerId !== pointerId) return;
     const dx = event.clientX - dragStartX;
-    moved = Math.max(moved, Math.abs(dx));
+    const dy = event.clientY - dragStartY;
+    dragDy = dy;
+    moved = Math.max(moved, Math.abs(dx), Math.abs(dy));
+
+    // Lock the axis once the gesture commits, so a swipe up for the details
+    // never also spins the rail.
+    if (!dragAxis) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      dragAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (dragAxis === 'y') return;
+
     // One card per ~140px of travel.
     offset = dragStartOffset - dx / 140;
   };
@@ -323,6 +343,12 @@ export function createLookGallery({
     canvas.classList.remove('is-grabbing');
     if (canvas.hasPointerCapture(event.pointerId)) {
       canvas.releasePointerCapture(event.pointerId);
+    }
+
+    if (dragAxis === 'y') {
+      if (Math.abs(dragDy) > 60) onVerticalSwipe?.(dragDy < 0 ? 'up' : 'down');
+      target = Math.round(offset);
+      return;
     }
 
     if (moved < 6) {
