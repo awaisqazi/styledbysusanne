@@ -82,10 +82,19 @@ const FRAGMENT = /* glsl */ `
 
     vec2 p = (vUv - 0.5) * uSize;
     float d = roundedBox(p, uSize * 0.5, uRadius);
-    float edge = 1.0 - smoothstep(-1.5, 0.5, d);
+    // Feather across roughly one pixel. d is in world units, so the band has
+    // to be derived from the on-screen gradient: a fixed span here would
+    // fade the whole card, not just its edge.
+    float aa = max(fwidth(d), 0.0015);
+    float edge = 1.0 - smoothstep(-aa, aa, d);
     if (edge <= 0.001) discard;
 
     gl_FragColor = vec4(colour, edge * uOpacity);
+
+    // Textures are flagged sRGB, so the GPU hands this shader linear values
+    // and the tint mixes in linear too. Without this encode the rail renders
+    // noticeably darker than the photos it is showing.
+    #include <colorspace_fragment>
   }
 `;
 
