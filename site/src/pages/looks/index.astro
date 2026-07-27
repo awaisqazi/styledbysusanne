@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Sparkle from '../../components/Sparkle.astro';
@@ -33,6 +33,29 @@ const mediaCount = instagramPosts.reduce((total, post) => total + post.media.len
 /** Element-tag recommendations shown inside each modal. */
 const recommendationsById = new Map(
   instagramPosts.map((post) => [post.id, similarToPost(post, 3)]),
+);
+
+/**
+ * Texture set for the optional WebGL gallery: square, modest, and built by
+ * the same image pipeline as the grid, so the browser reuses what it can.
+ */
+const galleryLooks = await Promise.all(
+  instagramPosts.map(async (post) => {
+    const image = await getImage({
+      src: resolveInstagramImage(post.media[0].src),
+      width: 520,
+      height: 520,
+      format: 'webp',
+      quality: 76,
+    });
+    return {
+      id: post.id,
+      src: image.src,
+      title: post.title,
+      category: LOOK_CATEGORIES[post.category],
+      shoppable: Boolean(post.shopHref),
+    };
+  }),
 );
 
 const dateLabel = (date: string) =>
@@ -99,12 +122,70 @@ const dateLabel = (date: string) =>
               ))
             }
           </div>
-          <p class="lookbook-count">
-            <strong>{instagramPosts.length}</strong> posts ·
-            <strong>{mediaCount}</strong> visuals
-          </p>
+          <div class="lookbook-toolbar-end">
+            {/* Shown only once the WebGL view is confirmed available. */}
+            <div class="view-switch" role="group" aria-label="Lookbook view" data-view-switch hidden>
+              <button type="button" data-view="grid" aria-pressed="true">Grid</button>
+              <button type="button" data-view="gallery" aria-pressed="false">Gallery</button>
+            </div>
+            <p class="lookbook-count">
+              <strong>{instagramPosts.length}</strong> posts ·
+              <strong>{mediaCount}</strong> visuals
+            </p>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- ============================================== WebGL gallery view -->
+    <div class="container">
+      <section class="rail" data-rail hidden aria-labelledby="rail-heading">
+        <h3 class="visually-hidden" id="rail-heading">Gallery view</h3>
+        <div class="rail-stage">
+          <canvas
+            class="rail-canvas"
+            data-rail-canvas
+            tabindex="0"
+            role="application"
+            aria-label="Look gallery. Use the left and right arrow keys to move between looks, Enter to open the centred look."
+          ></canvas>
+          <p class="rail-loading" data-rail-loading>Warming up the rail…</p>
+          <button
+            class="rail-arrow rail-arrow--prev"
+            type="button"
+            data-rail-prev
+            aria-label="Previous look"
+          >
+            ←
+          </button>
+          <button
+            class="rail-arrow rail-arrow--next"
+            type="button"
+            data-rail-next
+            aria-label="Next look"
+          >
+            →
+          </button>
+        </div>
+        <div class="rail-caption">
+          <p class="rail-position" data-rail-position></p>
+          <p class="rail-title" data-rail-title></p>
+          <div class="rail-actions">
+            <button class="btn btn--rose rail-open" type="button" data-rail-open>
+              Open this look
+            </button>
+          </div>
+          <p class="rail-hint">
+            Drag the rail, or use the arrow keys. Tap a look to bring it forward.
+          </p>
+        </div>
+        <p class="visually-hidden" role="status" data-rail-status></p>
+      </section>
+      <script
+        id="rail-data"
+        type="application/json"
+        set:html={JSON.stringify(galleryLooks)}
+      />
     </div>
 
     <div class="container">
@@ -747,6 +828,150 @@ const dateLabel = (date: string) =>
   };
   window.addEventListener('popstate', syncToHash);
   syncToHash();
+
+  /* ----------------------------------------- optional WebGL gallery view */
+  // The grid is the default and the fallback. three.js is fetched only when
+  // the visitor actually switches to Gallery, so the page cost is unchanged
+  // for everyone else.
+  const railData = document.getElementById('rail-data');
+  const viewSwitch = document.querySelector<HTMLElement>('[data-view-switch]');
+  const rail = document.querySelector<HTMLElement>('[data-rail]');
+  const gridSection = document.querySelector<HTMLElement>('.feed-grid');
+  const gridExtras = document.querySelector<HTMLElement>('.lookbook-more');
+
+  const webglSupported = () => {
+    try {
+      const probe = document.createElement('canvas');
+      return Boolean(
+        probe.getContext('webgl2') ||
+          probe.getContext('webgl') ||
+          probe.getContext('experimental-webgl'),
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  if (railData && viewSwitch && rail && webglSupported()) {
+    viewSwitch.hidden = false;
+    const looksForRail = JSON.parse(railData.textContent || '[]');
+    const canvas = rail.querySelector<HTMLCanvasElement>('[data-rail-canvas]')!;
+    const loading = rail.querySelector<HTMLElement>('[data-rail-loading]')!;
+    const positionEl = rail.querySelector<HTMLElement>('[data-rail-position]')!;
+    const titleEl = rail.querySelector<HTMLElement>('[data-rail-title]')!;
+    const statusEl = rail.querySelector<HTMLElement>('[data-rail-status]')!;
+    const openButton = rail.querySelector<HTMLButtonElement>('[data-rail-open]')!;
+
+    let gallery: import('../../scripts/look-gallery').GalleryHandle | null = null;
+    let activeRailIndex = 0;
+    let loadingGallery = false;
+
+    const describe = (look: { title: string; category: string; shoppable: boolean }, index: number) => {
+      activeRailIndex = index;
+      positionEl.textContent = `${index + 1} of ${looksForRail.length} · ${look.category}`;
+      titleEl.textContent = look.title;
+      openButton.textContent = look.shoppable ? 'Open and shop this look' : 'Open this look';
+      statusEl.textContent = `${look.title}, ${index + 1} of ${looksForRail.length}`;
+    };
+
+    // Category filters apply to the grid only; the rail always carries the
+    // whole lookbook, so the chips step aside rather than implying they act.
+    const filterBar = document.querySelector<HTMLElement>('[data-instagram-filter-bar]');
+
+    const showGrid = () => {
+      rail.hidden = true;
+      if (gridSection) gridSection.hidden = false;
+      if (gridExtras) gridExtras.hidden = false;
+      if (filterBar) filterBar.hidden = false;
+      gallery?.setPaused(true);
+      for (const button of viewSwitch.querySelectorAll('button')) {
+        button.setAttribute('aria-pressed', String(button.dataset.view === 'grid'));
+      }
+    };
+
+    const showGallery = async () => {
+      if (gridSection) gridSection.hidden = true;
+      if (gridExtras) gridExtras.hidden = true;
+      if (filterBar) filterBar.hidden = true;
+      rail.hidden = false;
+      for (const button of viewSwitch.querySelectorAll('button')) {
+        button.setAttribute('aria-pressed', String(button.dataset.view === 'gallery'));
+      }
+
+      if (gallery) {
+        gallery.setPaused(false);
+        gallery.resize();
+        return;
+      }
+      if (loadingGallery) return;
+      loadingGallery = true;
+
+      try {
+        const { createLookGallery } = await import('../../scripts/look-gallery');
+        gallery = createLookGallery({
+          canvas,
+          looks: looksForRail,
+          onActiveChange: describe,
+          onSelect: (look) => openModal(look.id),
+          // Hold the reveal until there are actual looks on the rail: an
+          // empty stage of placeholders reads as broken.
+          onReady: () => {
+            loading.hidden = true;
+            canvas.classList.add('is-ready');
+          },
+        });
+        // Safety net if the network stalls: show the rail anyway.
+        window.setTimeout(() => {
+          loading.hidden = true;
+          canvas.classList.add('is-ready');
+        }, 4000);
+      } catch {
+        // WebGL or the chunk failed: fall back to the grid for good.
+        loading.textContent = 'Gallery view is unavailable on this device.';
+        viewSwitch.hidden = true;
+        showGrid();
+      } finally {
+        loadingGallery = false;
+      }
+    };
+
+    for (const button of viewSwitch.querySelectorAll<HTMLButtonElement>('button')) {
+      button.addEventListener('click', () => {
+        if (button.dataset.view === 'gallery') void showGallery();
+        else showGrid();
+      });
+    }
+
+    rail.querySelector('[data-rail-prev]')?.addEventListener('click', () => gallery?.step(-1));
+    rail.querySelector('[data-rail-next]')?.addEventListener('click', () => gallery?.step(1));
+    openButton.addEventListener('click', () => {
+      const look = looksForRail[activeRailIndex];
+      if (look) openModal(look.id);
+    });
+
+    // Arrow keys drive the rail whenever it has focus and no modal is open.
+    rail.addEventListener('keydown', (event) => {
+      if (openId) return;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        gallery?.step(-1);
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        gallery?.step(1);
+      }
+      if (event.key === 'Enter' && event.target === canvas) {
+        const look = looksForRail[activeRailIndex];
+        if (look) openModal(look.id);
+      }
+    });
+
+    window.addEventListener('resize', () => gallery?.resize());
+    // Stop rendering whenever the rail is not the thing being looked at.
+    document.addEventListener('visibilitychange', () => {
+      gallery?.setPaused(document.hidden || rail.hidden);
+    });
+  }
 </script>
 
 <style>
@@ -801,6 +1026,47 @@ const dateLabel = (date: string) =>
     align-items: center;
     justify-content: space-between;
     gap: 1.2rem;
+  }
+
+  .lookbook-toolbar-end {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 0 0 auto;
+  }
+
+  /* Grid / Gallery switch */
+  .view-switch {
+    display: inline-flex;
+    padding: 0.2rem;
+    background: var(--ivory);
+    border: 1px solid var(--gold-hairline);
+    border-radius: 999px;
+  }
+
+  .view-switch[hidden] {
+    display: none;
+  }
+
+  .view-switch button {
+    min-height: 2.2rem;
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--umber);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+  }
+
+  .view-switch button[aria-pressed='true'] {
+    color: #fffdf9;
+    background: var(--rose);
   }
 
   .lookbook-count {
@@ -1008,10 +1274,146 @@ const dateLabel = (date: string) =>
     }
   }
 
+  /* ------------------------------------------------------- WebGL rail */
+  .rail[hidden] {
+    display: none;
+  }
+
+  .rail-stage {
+    position: relative;
+    /* A warm pool of light for the looks to hang in. */
+    background:
+      radial-gradient(120% 90% at 50% 42%, var(--rose-soft) 0%, transparent 62%),
+      linear-gradient(180deg, var(--paper) 0%, var(--ivory) 100%);
+    border: 1px solid var(--gold-hairline);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .rail-canvas {
+    display: block;
+    width: 100%;
+    height: clamp(22rem, 46vh, 30rem);
+    touch-action: pan-y;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+
+  .rail-canvas.is-ready {
+    opacity: 1;
+  }
+
+  .rail-canvas.is-grabbing {
+    cursor: grabbing;
+  }
+
+  .rail-canvas:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: -4px;
+  }
+
+  .rail-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: var(--umber);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+  }
+
+  .rail-loading[hidden] {
+    display: none;
+  }
+
+  .rail-arrow {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--espresso);
+    background: rgba(250, 246, 239, 0.9);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font: inherit;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(54, 44, 36, 0.16);
+  }
+
+  .rail-arrow--prev {
+    left: 0.8rem;
+  }
+
+  .rail-arrow--next {
+    right: 0.8rem;
+  }
+
+  .rail-arrow:hover {
+    color: var(--rose-deep);
+    border-color: var(--rose);
+  }
+
+  .rail-caption {
+    text-align: center;
+    padding: 1.4rem 1rem 0;
+  }
+
+  .rail-position {
+    color: var(--rose);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+
+  .rail-title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.7rem);
+    line-height: 1.3;
+    max-width: 32em;
+    margin: 0 auto 1.1rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .rail-hint {
+    color: var(--umber);
+    font-size: 0.8rem;
+    margin: 1rem 0 0;
+  }
+
+  @media (max-width: 640px) {
+    .rail-canvas {
+      height: clamp(20rem, 46vh, 26rem);
+    }
+
+    .rail-arrow {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+
   .lookbook-more {
     display: flex;
     justify-content: center;
     margin-top: 2.2rem;
+  }
+
+  .lookbook-more[hidden] {
+    display: none;
   }
 
   .lookbook-more .btn[hidden] {
